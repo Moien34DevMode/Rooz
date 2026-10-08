@@ -1,0 +1,41 @@
+:root[data-rooz-theme] .clock-layout { display: grid; grid-template-columns: minmax(320px, 600px) minmax(270px, 360px); gap: clamp(20px, 4vw, 64px); align-items: center; padding: 22px 0 32px; }
+.clock-stage { width: 100%; }
+.clock-date-context { color: var(--muted); font-size: 9px; }
+.clock-agenda { min-width: 0; background: var(--paper); border: 1px solid var(--line); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--shadow-soft); }
+.clock-agenda-heading h3 { margin: 6px 0; color: var(--ink); font-size: 17px; font-weight: 600; }
+.clock-agenda-heading p { margin: 0; color: var(--muted); font-size: 10px; line-height: 1.9; }
+.clock-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 22px 0; padding: 16px 0; border-block: 1px solid var(--line); }
+.clock-metrics div { display: flex; flex-direction: column; gap: 5px; }
+.clock-metrics strong { font-size: 23px; color: var(--green); font-weight: 600; }
+.clock-metrics span { font-size: 10px; color: var(--muted); }
+.clock-legend { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 18px; font-size: 9px; color: var(--muted); }
+.clock-legend span { display: inline-flex; align-items: center; gap: 6px; }
+.clock-legend i { background: var(--green); }
+.legend-line { width: 15px; height: 4px; border-radius: 2px; }
+.legend-dot, .legend-now { width: 6px; height: 6px; border-radius: 50%; }
+.legend-now { outline: 2px solid var(--green-wash); outline-offset: 2px; }
+.clock-agenda-list { max-height: 330px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.clock-agenda-item { display: flex; align-items: center; gap: 9px; border-bottom: 1px solid var(--line); padding: 12px 0; }
+.clock-agenda-item:last-child { border: 0; }
+.clock-agenda-item > i { width: 4px; align-self: stretch; border-radius: 3px; flex-shrink: 0; }
+.clock-agenda-item > div { min-width: 0; flex: 1; display: flex; flex-direction: column; gap: 5px; }
+.clock-agenda-item strong { color: var(--ink); font-size: 12px; font-weight: 500; overflow-wrap: anywhere; }
+.clock-agenda-item small { font-size: 9px; color: var(--muted); }
+.clock-agenda-time { direction: ltr; text-align: right; font-variant-numeric: tabular-nums; font-size: 11px; color: var(--green); }
+.clock-agenda-item.done strong { text-decoration: line-through; color: var(--muted); }
+.clock-agenda-item .icon-button { width: 28px; height: 28px; flex-shrink: 0; }
+.clock-agenda-delete { background: transparent; color: var(--theme-danger, #a33434); border: 0; padding: 5px; }
+.clock-agenda-empty { font-size: 12px; line-height: 2; color: var(--muted); padding: 16px 0; }
+.clock-now circle { fill: var(--green-wash); stroke: var(--green); stroke-width: 1.5; }
+.clock-now .clock-now-core { fill: var(--green); stroke: none; }
+:root[data-theme-parent="mini"] .second-hand { display: none; }
+:root[data-theme-parent="hacker"] .clock-agenda { box-shadow: none; }
+@supports (backdrop-filter: blur(1px)) {
+  :root[data-theme-effect="acrylic"] .clock-agenda { background: color-mix(in srgb, var(--paper) 85%, transparent); backdrop-filter: blur(14px); }
+  :root[data-theme-effect="liquid-glass"] .clock-agenda { background: color-mix(in srgb, var(--paper) 75%, transparent); backdrop-filter: blur(22px) saturate(1.5); }
+}
+.data-loading { margin: 12px 0; color: var(--muted); font-size: 11px; }
+.load-error { margin: 20px 0; padding: 16px; background: var(--paper); border: 1px solid var(--theme-danger, #a33434); border-radius: var(--radius-md); color: var(--ink); font-size: 12px; }
+@media (max-width: 1000px) { :root[data-rooz-theme] .clock-layout { grid-template-columns: minmax(300px, 1fr) minmax(250px, .75fr); gap: 20px; } .clock-agenda { padding: 18px; } }
+@media (max-width: 760px) { :root[data-rooz-theme] .clock-layout { grid-template-columns: 1fr; padding-top: 10px; } .clock-stage { max-width: 560px; } .clock-agenda { width: 100%; } .clock-agenda-list { max-height: 280px; } }
+@media (max-width: 480px) { .clock-caption { flex-wrap: wrap; height: auto; min-height: 28px; } .clock-date-context { display: none; } }

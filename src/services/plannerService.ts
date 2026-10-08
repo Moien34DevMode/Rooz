@@ -3,7 +3,8 @@ import type { GoalInput, Preferences, ScheduleInput, ShortTermTaskInput, TaskInp
 import type { GoalRepository, ShortTermTaskRepository } from '../domain/repositories';
 
 export class PlannerService {
-  constructor(private tasks: TaskRepository, private schedule: ScheduleRepository, private notes: NoteRepository, private preferences: PreferencesRepository, private goals: GoalRepository, private shortTasks: ShortTermTaskRepository) {}
+  constructor(private tasks: TaskRepository, private schedule: ScheduleRepository, private notes: NoteRepository, private preferences: PreferencesRepository, private goals: GoalRepository, private shortTasks: ShortTermTaskRepository, private resetStorage: () => Promise<void>) {}
+  clearMemory() { return this.resetStorage(); }
   getTasks(date: string) { return this.tasks.getByDate(date); }
   getTasksBetween(start: string, end: string) { return this.tasks.getBetween(start, end); }
   getAllTasks() { return this.tasks.getAll(); }

@@ -57,6 +57,6 @@ export interface ScheduleEntry extends ScheduleItem {
   shortTaskId?: string; completed?: boolean; sourceId?: string; occurrenceDate?: string;
 }
 export interface DayNote { date: string; content: string; updatedAt: string }
-export interface Preferences { calendar: CalendarSystem }
+export interface Preferences { calendar: CalendarSystem; theme?: import('../features/themes/registry').ThemePreferences }
 export type TaskInput = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
 export type ScheduleInput = Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'>;

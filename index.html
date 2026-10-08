@@ -1,5 +1,25 @@
 <!doctype html>
 <html lang="fa" dir="rtl">
-  <head><meta charset="UTF-8" /><meta name="viewport" content="width=device-width, initial-scale=1.0" /><meta name="theme-color" content="#f6f7f5" /><title>روز | برنامه‌ریز شخصی</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet"></head>
-  <body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f5f6f3" />
+    <title>روز | برنامه‌ریز شخصی</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+      #startup-loader { position:fixed; inset:0; z-index:1000; display:grid; place-items:center; background:#f5f6f3; color:#25322f; font-family:Tahoma,sans-serif; text-align:center; padding:24px; }
+      .startup-content { max-width:360px; }
+      .startup-mark { display:grid; place-items:center; margin:0 auto 24px; width:72px; height:72px; border:1px solid #cad7ce; border-radius:24px; background:#eaf0ec; color:#517365; font-size:32px; }
+      #startup-loader h1 { color:#25322f; margin:0 0 12px; font-size:26px; }
+      #startup-status { color:#617168; font-size:13px; line-height:2; }
+      #startup-retry { padding:10px 20px; border:1px solid #517365; border-radius:10px; background:#fff; color:#39594c; cursor:pointer; }
+    </style>
+  </head>
+  <body>
+    <div id="startup-loader" role="status" aria-live="polite"><div class="startup-content"><div class="startup-mark" aria-hidden="true">روز</div><h1>یک روز تازه</h1><p id="startup-status">در حال بارگذاری برنامه…</p><button id="startup-retry" hidden>تلاش دوباره</button><noscript>برای استفاده از روز، جاوااسکریپت مرورگر را فعال کنید.</noscript></div></div>
+    <div id="root" inert aria-hidden="true"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
 </html>

@@ -1,0 +1,179 @@
+/* Scoped overrides deliberately outrank the legacy light-only stylesheet. */
+:root {
+  --theme-surface: #fff;
+  --theme-surface-raised: #edf1ee;
+  --theme-text: #25322f;
+  --theme-muted: #617168;
+  --theme-border: #d8e0da;
+  --theme-accent: #517365;
+  --theme-on-accent: #fff;
+  --theme-accent-wash: #eaf0ec;
+  --theme-danger: #a33434;
+  --theme-danger-wash: #fbecec;
+  --theme-radius: 16px;
+  --theme-shadow: 0 16px 50px #32433b14;
+  --theme-duration: .14s;
+  --theme-easing: ease;
+  --theme-overlay: #23302a55;
+}
+:root[data-rooz-theme] {
+  --ink: var(--theme-text);
+  --muted: var(--theme-muted);
+  --line: var(--theme-border);
+  --paper: var(--theme-surface);
+  --canvas: var(--theme-canvas);
+  --green: var(--theme-accent);
+  --green-dark: var(--theme-accent);
+  --green-wash: var(--theme-accent-wash);
+  --sand: var(--theme-muted);
+  --radius-sm: min(10px, var(--theme-radius));
+  --radius-md: var(--theme-radius);
+  --radius-lg: calc(var(--theme-radius) * 1.375);
+  --shadow-soft: var(--theme-shadow);
+  --focus: 0 0 0 3px color-mix(in srgb, var(--theme-accent) 35%, transparent);
+  color: var(--theme-text);
+  background: var(--theme-canvas);
+}
+:root[data-theme-mode="light"] { color-scheme: light; }
+:root[data-theme-mode="dark"] { color-scheme: dark; }
+:root[data-rooz-theme] body {
+  color: var(--theme-text);
+  background-color: var(--theme-canvas);
+  background-image: var(--theme-background);
+  background-size: var(--theme-background-size);
+  min-height: 100vh;
+}
+:root[data-rooz-theme] :is(input, select, textarea)::placeholder { color: var(--theme-muted); }
+:root[data-rooz-theme] :is(input[type="checkbox"], input[type="radio"], input[type="range"]) { accent-color: var(--theme-accent); }
+:root[data-rooz-theme] :is(h1, h2, h3, .date-card strong, .daily-heading h2, .panel-heading h2, .section-heading h2, .agenda-heading h3, .setting-copy strong, .dialog-top h2, .do-header h2, .manager-header h2, .manager-detail-heading h3, .year-goal-copy strong, .weekly-goal strong, .manager-item > strong, .manager-detail-row span, .todo-title, .hover-task-title, .hover-schedule-title, .schedule-chip strong, .week-day strong) { color: var(--theme-text); }
+:root[data-rooz-theme] :is(.greeting, .page-intro p, .date-navigation, .eyebrow, .day-summary, .day-summary b, .clock-caption, .hover-card-heading, .hover-card-heading small, .hover-task-check, .hover-task-edit, .empty-state, .empty-state span, .save-indicator, .note-footer, .schedule-chip, .muted, .app-footer, .setting-copy small, .storage-status, .settings-footnote, .field-label, .agenda-row, .agenda-row span, .agenda-row small, .agenda-total, .agenda-note strong, .agenda-note p, .calendar-empty, .weekday-name, .do-kicker, .do-intro, .do-field, .do-field small, .do-form-content details > summary, .relation-row > label:first-child, .coefficient-field, .check-line, .do-color-row, .year-goal-copy span, .goal-progress, .manager-search, .manager-search span, .manager-filters label, .manager-item-type, .manager-item-bottom small, .manager-item-bottom b, .manager-detail-row strong, .manager-empty, .weekly-goal small, .weekly-commitment, .weekly-commitment strong, .select-trigger > svg) { color: var(--theme-muted); }
+:root[data-rooz-theme] :is(.select-trigger, .select-menu, .all-tasks-button, .calendar-switch, .icon-button, .task-dialog, .settings-dialog, .do-dialog, .task-manager, .button.secondary, .week-day, .month-day, .year-month, .manager-item, .manager-edit, .manager-delete, .relation-row, .choice-grid label, .weekday-picks button, .todo-check, .clock-hover-card) {
+  background: var(--theme-surface);
+  color: var(--theme-text);
+  border-color: var(--theme-border);
+}
+:root[data-rooz-theme] :is(.select-trigger:hover:not(:disabled), .all-tasks-button:hover, .manager-item:hover, .manager-edit:hover, .hover-task-check:hover, .hover-task-edit:hover, .hover-edit-button, .note-section textarea, .schedule-chip, .agenda-note, .do-field input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), .do-field select, .do-field textarea, .field-label input, .date-select-trigger, .date-disabled, .do-form-content details, .do-empty-help, .manager-search, .manager-search input) {
+  background: var(--theme-surface-raised);
+  color: var(--theme-text);
+  border-color: var(--theme-border);
+}
+:root[data-rooz-theme] :is(.view-tabs, .segmented, .switch-track, .calendar-switch.is-gregorian .switch-track, .goal-progress > i, .manager-progress) { background: var(--theme-surface-raised); }
+:root[data-rooz-theme] :is(.view-tabs button, .segmented button, .do-type-switch button) { color: var(--theme-muted); }
+:root[data-rooz-theme] .do-type-switch button { background: var(--theme-surface-raised); border-color: var(--theme-border); }
+:root[data-rooz-theme] :is(.view-tabs button.active, .segmented button.active, .select-option.is-active, .week-day.selected, .month-day.selected, .do-type-switch button.active, .choice-grid label.selected, .relation-row.selected, .weekday-picks button.active, .manager-item.selected) { background: var(--theme-accent-wash); color: var(--theme-text); border-color: var(--theme-accent); box-shadow: none; }
+:root[data-rooz-theme] :is(.calendar-switch span.selected, .select-option[aria-selected="true"], .select-option > svg, .current-time, h1 em, .today-button, .text-add) { color: var(--theme-accent); }
+:root[data-rooz-theme] :is(.brand-icon, .do-button, .do-save, .button.primary, .todo-row.completed .todo-check) { background: var(--theme-accent); color: var(--theme-on-accent); border-color: var(--theme-accent); }
+:root[data-rooz-theme] :is(.do-button:hover, .do-save:hover, .button.primary:hover) { background: var(--theme-accent); filter: brightness(.92); }
+:root[data-rooz-theme] :is(.avatar, .greeting-mark, .todo-icon, .note-icon, .schedule-icon, .count-badge, .setting-icon) { background: var(--theme-accent-wash); color: var(--theme-text); }
+:root[data-rooz-theme] :is(.switch-track b, .calendar-switch.is-gregorian .switch-track b, .live-dot, .save-indicator i, .storage-status i, .goal-progress b, .manager-progress b, .year-dots i) { background: var(--theme-accent); }
+:root[data-rooz-theme] :is(.live-dot, .year-dots i.today) { box-shadow: 0 0 0 3px var(--theme-accent-wash); }
+:root[data-rooz-theme] :is(.date-card, .today-button, .hover-task-row, .todo-row, .setting-row, .dialog-actions, .week-grid, .agenda-row, .do-header, .do-type-switch, .do-form-content details[open] > summary, .relation-list, .relation-row, .do-color-row, .do-footer, .year-goals, .year-goal, .manager-header, .manager-filters, .manager-list, .manager-detail-heading, .manager-detail-row, .weekly-goals, .weekly-goal) { border-color: var(--theme-border); }
+:root[data-rooz-theme] :is(.caption-divider, .day-summary i) { background: var(--theme-border); }
+:root[data-rooz-theme] :is(.todo-row.completed .todo-title, .hover-task-title.completed, .hover-schedule-title.completed) { color: var(--theme-muted); }
+:root[data-rooz-theme] :is(.todo-delete, .hover-task-delete, .manager-delete, .date-clear) { color: var(--theme-danger); }
+:root[data-rooz-theme] :is(.hover-task-delete:hover, .manager-delete:hover, .date-clear, .do-error) { color: var(--theme-danger); background: var(--theme-danger-wash); border-color: var(--theme-danger); }
+:root[data-rooz-theme] .toast { background: var(--theme-surface-raised); color: var(--theme-text); border: 1px solid var(--theme-border); }
+:root[data-rooz-theme] .modal-backdrop { background: var(--theme-overlay); backdrop-filter: none; }
+:root[data-rooz-theme] :is(.clock-halo) { fill: var(--theme-surface-raised); }
+:root[data-rooz-theme] .clock-face { fill: var(--theme-surface); stroke: var(--theme-border); filter: none; }
+:root[data-rooz-theme] :is(.tick, .tick.major, .range-track, .task-track) { stroke: var(--theme-border); }
+:root[data-rooz-theme] :is(.clock-number, .clock-center-label, .marker-count) { fill: var(--theme-muted); }
+:root[data-rooz-theme] :is(.marker-dot, .marker-count) { stroke: var(--theme-surface); }
+:root[data-rooz-theme] :is(.hour-hand, .minute-hand) { stroke: var(--theme-text); }
+:root[data-rooz-theme] .second-hand { stroke: var(--theme-accent); }
+:root[data-rooz-theme] .hand-pin { fill: var(--theme-surface); stroke: var(--theme-accent); }
+:root[data-rooz-theme] :is(.todo-list, .do-form-scroll, .manager-list, .manager-details-list, .select-menu, .note-section textarea) { scrollbar-color: var(--theme-border) transparent; }
+:root[data-rooz-theme] .todo-list::-webkit-scrollbar-thumb { background: var(--theme-border); }
+:root[data-rooz-theme] :is(.task-dialog, .settings-dialog, .do-dialog, .task-manager, .clock-hover-card, .select-menu) { box-shadow: var(--theme-shadow); }
+:root[data-rooz-theme] :is(button, input:not([type="checkbox"]):not([type="radio"]), select, textarea, .select-menu, .task-dialog, .settings-dialog, .do-dialog, .task-manager, .clock-hover-card, .week-grid, .year-month, .view-tabs, .segmented, .agenda-note, .do-form-content details) { border-radius: var(--theme-radius); }
+:root[data-rooz-theme] :is(input, select, textarea, button, a):focus-visible { outline: 2px solid var(--theme-accent); outline-offset: 2px; }
+:root[data-rooz-theme] :is(.do-field input:focus, .do-field select:focus, .do-field textarea:focus) { border-color: var(--theme-accent); box-shadow: var(--focus); }
+
+/* Solid surfaces are the fallback when backdrop filters are unavailable. */
+@supports (backdrop-filter: blur(1px)) {
+  :root[data-theme-effect="acrylic"] :is(.todo-section, .note-section, .schedule-list, .calendar-panel, .settings-dialog, .theme-confirm-dialog, .do-dialog, .task-manager, .clock-hover-card) {
+    background: color-mix(in srgb, var(--theme-surface) 85%, transparent);
+    backdrop-filter: blur(14px);
+  }
+  :root[data-theme-effect="liquid-glass"] :is(.todo-section, .note-section, .schedule-list, .calendar-panel, .settings-dialog, .theme-confirm-dialog, .do-dialog, .task-manager, .clock-hover-card) {
+    background: color-mix(in srgb, var(--theme-surface) 75%, transparent);
+    backdrop-filter: blur(22px) saturate(1.5);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--theme-text) 18%, transparent), var(--theme-shadow);
+  }
+}
+:root[data-rooz-theme] *, :root[data-rooz-theme] *::before, :root[data-rooz-theme] *::after {
+  transition-duration: var(--theme-duration);
+  transition-timing-function: var(--theme-easing);
+  animation-duration: var(--theme-duration);
+  animation-timing-function: var(--theme-easing);
+}
+:root[data-theme-animation="full"] :is(.theme-choice, .button):hover:not(:disabled) { transform: translateY(-2px); }
+:root[data-theme-animation="tech"] :is(.theme-choice, .button):hover:not(:disabled) { outline: 1px dashed var(--theme-accent); outline-offset: 3px; }
+:root[data-theme-animation="none"],
+:root[data-theme-animation="none"] *,
+:root[data-theme-animation="none"] *::before,
+:root[data-theme-animation="none"] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+}
+/* Mini is a strict performance boundary, even if an attribute is set incorrectly. */
+:root[data-theme-parent="mini"],
+:root[data-theme-parent="mini"] *,
+:root[data-theme-parent="mini"] *::before,
+:root[data-theme-parent="mini"] *::after {
+  animation: none !important;
+  transition: none !important;
+  scroll-behavior: auto !important;
+  backdrop-filter: none !important;
+  filter: none !important;
+  box-shadow: none !important;
+}
+:root[data-theme-parent="mini"] :is(.todo-section, .note-section, .schedule-list, .calendar-panel, .settings-dialog, .theme-confirm-dialog, .do-dialog, .task-manager, .clock-hover-card) { background: var(--theme-surface) !important; }
+:root[data-theme-parent="mini"] :is(.do-button, .theme-choice, .button):hover { transform: none; }
+@media (prefers-reduced-motion: reduce) {
+  :root[data-rooz-theme], :root[data-rooz-theme] *, :root[data-rooz-theme] *::before, :root[data-rooz-theme] *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+  :root[data-rooz-theme] :is(.theme-choice, .button):hover { transform: none; }
+}
+
+.theme-settings-backdrop { z-index: 60; }
+.settings-dialog.theme-settings-dialog { width: min(100%, 700px); max-height: 90vh; max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain; padding: 24px; background: var(--theme-surface); color: var(--theme-text); border-color: var(--theme-border); }
+.theme-settings-fields { border: 0; margin: 0; padding: 0; min-width: 0; }
+.theme-settings-section { border-top: 1px solid var(--theme-border); padding: 16px 0; }
+.theme-settings-section h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 14px; }
+.theme-help { color: var(--theme-muted); font-size: 11px; line-height: 1.9; margin: 8px 0 12px; }
+.theme-mode-switch { display: flex; gap: 6px; margin-bottom: 12px; }
+.theme-mode-switch button { border: 1px solid var(--theme-border); background: var(--theme-surface-raised); padding: 7px 18px; border-radius: var(--theme-radius); }
+.theme-mode-switch button[aria-pressed="true"] { border-color: var(--theme-accent); color: var(--theme-text); background: var(--theme-accent-wash); }
+.theme-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.theme-choice { display: flex; flex-direction: column; gap: 6px; padding: 12px; text-align: start; border: 1px solid var(--theme-border); background: var(--theme-surface-raised); border-radius: var(--theme-radius); overflow-wrap: anywhere; transition: transform var(--theme-duration); }
+.theme-choice small { color: var(--theme-muted); font-size: 10px; line-height: 1.7; }
+.theme-choice[aria-pressed="true"] { border-color: var(--theme-accent); background: var(--theme-accent-wash); outline: 1px solid var(--theme-accent); }
+.theme-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.theme-editor { border: 1px solid var(--theme-border); border-radius: var(--theme-radius); padding: 16px; margin-top: 12px; }
+.theme-editor h4 { margin: 0 0 10px; }
+.theme-controls-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.theme-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; font-size: 11px; color: var(--theme-text); min-width: 0; }
+.theme-field :is(input, select) { min-width: 0; width: 100%; min-height: 38px; padding: 7px 10px; border: 1px solid var(--theme-border); border-radius: var(--theme-radius); color: var(--theme-text); background: var(--theme-surface-raised); }
+.theme-field input[type="color"] { padding: 3px; height: 38px; }
+.theme-field input[type="range"] { padding: 0; }
+.theme-field select:disabled { opacity: .6; }
+.button.theme-danger { color: var(--theme-danger); background: var(--theme-danger-wash); border-color: var(--theme-danger); }
+.theme-error { color: var(--theme-danger); background: var(--theme-danger-wash); border: 1px solid var(--theme-danger); border-radius: var(--theme-radius); padding: 10px; font-size: 12px; overflow-wrap: anywhere; }
+.theme-confirm-backdrop { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 18px; background: var(--theme-overlay); }
+.theme-confirm-dialog { width: min(100%, 480px); max-height: 90vh; overflow-y: auto; padding: 24px; color: var(--theme-text); background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--theme-radius); box-shadow: var(--theme-shadow); }
+.theme-confirm-dialog h2 { margin: 0 0 12px; font-size: 18px; }
+.theme-confirm-dialog p { line-height: 1.9; font-size: 12px; }
+.theme-settings-dialog .dialog-actions { position: sticky; bottom: -24px; margin-bottom: -24px; padding-bottom: 24px; background: var(--theme-surface); }
+@media (max-width: 480px) {
+  .settings-dialog.theme-settings-dialog { padding: 16px; }
+  .theme-choices { grid-template-columns: 1fr; }
+  .theme-controls-grid { grid-template-columns: 1fr; gap: 0; }
+  .theme-settings-dialog .setting-row { flex-wrap: wrap; }
+  .theme-settings-dialog .dialog-actions { bottom: -16px; margin-bottom: -16px; padding-bottom: 16px; flex-wrap: wrap; }
+  .theme-tools .button, .theme-confirm-dialog .button { height: auto; min-height: 39px; padding: 10px; }
+}

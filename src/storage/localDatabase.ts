@@ -12,3 +12,10 @@ class PlannerDatabase extends Dexie {
   }
 }
 export const database = new PlannerDatabase();
+
+/** One transaction ensures a failed reset cannot leave partially deleted data. */
+export async function clearAllPlannerData(): Promise<void> {
+  await database.transaction('rw', database.tables, async () => {
+    await Promise.all(database.tables.map(table => table.clear()));
+  });
+}
