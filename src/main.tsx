@@ -32,7 +32,6 @@ async function start() {
       loader.remove();
       root.removeAttribute('inert');
       root.removeAttribute('aria-hidden');
-      document.getElementById('app-title')?.focus({ preventScroll: true });
     };
     ReactDOM.createRoot(root).render(<React.StrictMode><App onReady={ready}/></React.StrictMode>);
   } catch (error) {
