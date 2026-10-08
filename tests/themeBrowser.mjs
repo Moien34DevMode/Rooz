@@ -62,6 +62,54 @@ try {
     await command('Emulation.setDeviceMetricsOverride', { width, height, deviceScaleFactor: 1, mobile: width < 600 });
     await delay(100);
   }
+  async function checkCalendars(material) {
+    for (const calendar of ['persian', 'gregorian']) {
+      const persian = calendar === 'persian';
+      if (await evaluate("document.querySelector('.calendar-switch').getAttribute('aria-checked')") !== String(persian)) {
+        await evaluate("document.querySelector('.calendar-switch').click()");
+        await until(() => evaluate(`document.querySelector('.calendar-switch').getAttribute('aria-checked') === '${persian}' && !document.querySelector('.data-loading')`), 'calendar switch');
+      }
+      for (const width of [1440, 768, 390, 320]) {
+        await viewport(width, width > 600 ? 1000 : 844);
+        for (const [view, label] of [['weekly', 'هفتگی'], ['monthly', 'ماهانه']]) {
+          await evaluate(`Array.from(document.querySelectorAll('.view-tabs button')).find(button => button.textContent.includes('${label}')).click()`);
+          await until(() => evaluate(`!!document.querySelector('.cv-${view}') && !document.querySelector('.data-loading')`), `${view} readiness`);
+          await delay(750);
+          const geometry = await evaluate(`(() => {
+            const panel = document.querySelector('.cv-panel'), grid = panel.querySelector('.cv-${view === 'weekly' ? 'week' : 'month'}-grid');
+            const days = Array.from(grid.querySelectorAll('button'));
+            const bounds = panel.getBoundingClientRect();
+            return { overflow: panel.scrollWidth - panel.clientWidth, pageOverflow: document.documentElement.scrollWidth - innerWidth,
+              columns: getComputedStyle(grid).gridTemplateColumns.split(' ').length, count: days.length,
+              allVisible: days.every(day => { const rect = day.getBoundingClientRect(); return rect.left >= bounds.left && rect.right <= bounds.right && day.scrollWidth <= day.clientWidth + 1; }),
+              maxHeight: Math.max(...days.map(day => day.getBoundingClientRect().height)) };
+          })()`);
+          assert.ok(geometry.overflow <= 1 && geometry.pageOverflow <= 1 && geometry.allVisible, `${material}/${calendar}/${width}/${view}: ${JSON.stringify(geometry)}`);
+          assert.equal(geometry.columns, view === 'monthly' ? 7 : width <= 480 ? 1 : width <= 760 ? 2 : width <= 1100 ? 4 : 7);
+          assert.ok(view === 'weekly' ? geometry.count === 7 : geometry.count >= 28 && geometry.count <= 31);
+          if (width <= 760 && view === 'monthly') assert.ok(geometry.maxHeight <= 80, 'Mobile month cells are compact');
+          if (calendar === 'persian' && (width === 390 || width === 1440)) {
+            await evaluate(`document.querySelector('${view === 'weekly' ? '.cv-heading' : '.cv-month-grid'}').scrollIntoView({ block: 'start' })`);
+            await screenshot(`${material}-${view}-${width < 600 ? 'mobile' : 'desktop'}`);
+          }
+          if (view === 'weekly') {
+            await evaluate("document.querySelector('.cv-week-day:last-child').scrollIntoView({ block: 'center' })");
+            const point = await evaluate("(() => { const rect = document.querySelector('.cv-week-day:last-child').getBoundingClientRect(); return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; })()");
+            await clickAt(point.x, point.y);
+            await until(() => evaluate("document.querySelector('.cv-week-day:last-child').getAttribute('aria-pressed') === 'true'"), 'weekly day selection');
+          } else {
+            await evaluate("document.querySelector('.cv-month-day.is-selected').scrollIntoView({ block: 'center' })");
+            const point = await evaluate("(() => { const rect = document.querySelector('.cv-month-day.is-selected').getBoundingClientRect(); return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 }; })()");
+            await clickAt(point.x, point.y);
+            await until(() => evaluate("!!document.querySelector('.clock-agenda') && !document.querySelector('.data-loading')"), 'monthly day opens daily view');
+          }
+        }
+      }
+    }
+    await evaluate("document.querySelector('.calendar-switch.is-gregorian')?.click(); document.querySelector('.today-button')?.click(); window.scrollTo(0, 0)");
+    await until(() => evaluate("!!document.querySelector('.clock-agenda') && !document.querySelector('.data-loading')"), 'return to daily');
+    await viewport(1440, 1000);
+  }
   async function setInput(selector, value) {
     await evaluate(`(() => { const input = document.querySelector(${JSON.stringify(selector)}); input.focus(); input.select(); })()`);
     await command('Input.insertText', { text: value });
@@ -127,6 +175,7 @@ try {
   await viewport(1440, 1000);
   await command('Page.navigate', { url });
   await until(() => evaluate("!document.getElementById('startup-loader') && !!document.querySelector('.clock-agenda')"), 'startup readiness');
+  await checkCalendars('light-empty');
   await evaluate("document.querySelector('.settings-button').click()");
   await until(() => evaluate("!!document.querySelector('[data-theme-create]')"), 'settings');
   await evaluate("document.querySelector('[data-theme-create]').click()");
@@ -257,8 +306,20 @@ try {
   await selectOption('همه');
   await key('Escape', 'Escape', 27);
   assert.equal(await evaluate("!!document.querySelector('.task-manager')"), false);
+  // Seed only the isolated temporary browser database; exercise populated glass calendars too.
+  await evaluate(`(async () => {
+    const { database } = await import('/src/storage/localDatabase.ts');
+    const { todayKey } = await import('/src/features/calendar/calendar.ts');
+    const date = todayKey(), stamp = new Date().toISOString();
+    await database.tasks.bulkPut(Array.from({ length: 3 }, (_, i) => ({ id: 'calendar-check-' + i, title: 'کار با عنوان طولانی برای بررسی اندازه‌ی خانه‌ی تقویم', date, kind: 'timed', startTime: '09:00', endTime: '10:00', status: i ? 'open' : 'done', color: '#0066ff', createdAt: stamp, updatedAt: stamp })));
+    await database.schedule.put({ id: 'calendar-schedule', title: 'بازه‌ی برنامه', date, startTime: '11:00', endTime: '12:00', color: '#0066ff', createdAt: stamp, updatedAt: stamp });
+    await database.goals.put({ id: 'calendar-goal', kind: 'long-term', title: 'سررسید با عنوان طولانی برای بررسی تقویم', deadlineDate: date, note: '', createdAt: stamp, updatedAt: stamp });
+  })()`);
+  await command('Page.reload');
+  await until(() => evaluate("!document.getElementById('startup-loader') && !!document.querySelector('.clock-agenda')"), 'calendar fixture reload');
+  await checkCalendars('glass-populated');
   assert.deepEqual(errors, []);
-  console.log('PASS: Edge theme mode retention/shared and independent editing, direct save/reload, compact desktop/mobile layout, stable glass footer, top-layer and fallback dropdown alignment/clicks, task/manager selects, keyboard dismissal/scroll, mini and reduced motion.');
+  console.log('PASS: Responsive weekly/monthly calendars at 320/390/768/1440px in both calendar systems, empty/light and populated/glass, day selection; Edge theme mode retention/shared and independent editing, direct save/reload, compact desktop/mobile layout, stable glass footer, top-layer and fallback dropdown alignment/clicks, task/manager selects, keyboard dismissal/scroll, mini and reduced motion.');
   console.log('Screenshots: dist/theme-checks/glass-editor.png, glass-settings-footer.png, color-editor-mobile.png, task-dropdown-desktop.png, task-dropdown-mobile.png');
 } finally {
   if (command && socket?.readyState === WebSocket.OPEN) { try { await command('Browser.close'); } catch {} }

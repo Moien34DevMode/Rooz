@@ -178,6 +178,26 @@ test('monthly rendering labels true today independently of the selected date and
   assert.match(html, /امروز/);
 });
 
+test('responsive month indicators retain task, schedule and deadline information in both calendars', () => {
+  for (const calendar of ['persian', 'gregorian']) {
+    const html = renderView({ view: 'monthly', calendar, tasks: [task()], schedule: [schedule()], goals: [goal()] });
+    assert.match(html, /class="cv-month-activity"><i><\/i>۲<\/span>/);
+    assert.match(html, /class="cv-month-due">◆<\/span>/);
+    assert.match(html, /۲ مورد؛ ۱٫۵ ساعت برنامه/);
+    assert.equal((html.match(/class="cv-month-day/g) ?? []).length, getMonthDays(date, calendar).count);
+    assert.equal((html.match(/class="cv-weekday"/g) ?? []).length, 7);
+    assert.doesNotMatch(html, /پیمایش افقی|tabindex="0"/);
+  }
+});
+
+test('weekly responsive rows keep date and metrics grouped without a scrolling region', () => {
+  const html = renderView({ tasks: [task()], schedule: [schedule()] });
+  assert.equal((html.match(/class="cv-week-date"/g) ?? []).length, 7);
+  assert.equal((html.match(/class="cv-week-metrics"/g) ?? []).length, 7);
+  assert.match(html, /۱ کار · ۱ بازه/);
+  assert.doesNotMatch(html, /پیمایش|tabindex="0"/);
+});
+
 test('yearly rendering produces twelve full accessible month tables in both calendars', () => {
   for (const calendar of ['gregorian', 'persian']) {
     const year = calendar === 'gregorian' ? 2024 : 1403;

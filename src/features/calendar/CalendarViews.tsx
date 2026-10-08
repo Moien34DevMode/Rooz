@@ -38,7 +38,7 @@ function WeekdayLabels() {
 
 function dayLabel(key: string, calendar: CalendarSystem, summary?: DaySummary) {
   const count = (summary?.taskCount ?? 0) + (summary?.scheduleCount ?? 0);
-  return `${formatDate(key, calendar, { weekday: 'long' })}؛ ${number(count)} مورد؛ ${hours(summary?.plannedMinutes ?? 0)} برنامه؛ ${number(summary?.completedCount ?? 0)} انجام‌شده${summary?.deadlines.length ? `؛ سررسید: ${summary.deadlines.map(goal => goal.title).join('، ')}` : ''}`;
+  return `${formatDate(key, calendar, { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}؛ ${number(count)} مورد؛ ${hours(summary?.plannedMinutes ?? 0)} برنامه؛ ${number(summary?.completedCount ?? 0)} انجام‌شده${summary?.deadlines.length ? `؛ سررسید: ${summary.deadlines.map(goal => goal.title).join('، ')}` : ''}`;
 }
 
 export function CalendarViews({ view, date, calendar, tasks, schedule, goals, weeklyCommitmentHours, getProgress, onSelectDate, onSelectMonth, onNavigate }: Props) {
@@ -73,14 +73,11 @@ export function CalendarViews({ view, date, calendar, tasks, schedule, goals, we
 
     {view === 'weekly' && <>
       <p className="cv-commitment">تعهد اهداف میان‌مدت: <strong>{number(weeklyCommitmentHours)} ساعت در هفته</strong></p>
-      <div className="cv-scroll" role="region" aria-label="روزهای هفته؛ برای دیدن همه‌ی روزها می‌توانید افقی پیمایش کنید" tabIndex={0}><div className="cv-week-grid">{period.dates.map((key, dayIndex) => {
+      <div className="cv-scroll" role="region" aria-label="روزهای هفته"><div className="cv-week-grid">{period.dates.map((key, dayIndex) => {
         const day = index.get(key);
         return <button type="button" className={`cv-week-day ${key === date ? 'is-selected' : ''}`} data-heat={workloadLevel(day)} key={key} onClick={() => onSelectDate(key)} aria-pressed={key === date} aria-current={key === today ? 'date' : undefined} aria-label={`${dayLabel(key, calendar, day)}${key === today ? '؛ امروز' : ''}`}>
-          <span>{weekdays[dayIndex]}</span><strong>{number(calendarParts(key, calendar).day)}</strong><span className="cv-day-month">{formatDate(key, calendar, { month: 'short', day: undefined, year: undefined })}</span>
-          <span className="cv-today-label">{key === today ? 'امروز' : '\u00a0'}</span>
-          <span>{number(day?.taskCount ?? 0)} کار · {number(day?.scheduleCount ?? 0)} بازه</span><span className="cv-day-hours">{hours(day?.plannedMinutes ?? 0)}</span>
-          <span className="cv-day-completion">{number(day?.completedCount ?? 0)} / {number(day?.completableCount ?? 0)} انجام‌شده</span>
-          {!!day?.deadlineCount && <span className="cv-deadline-mark">{number(day.deadlineCount)} سررسید</span>}
+          <span className="cv-week-date"><span>{weekdays[dayIndex]}</span><span className="cv-week-date-number"><strong>{number(calendarParts(key, calendar).day)}</strong><span className="cv-day-month">{formatDate(key, calendar, { month: 'short', day: undefined, year: undefined })}</span></span>{key === today && <span className="cv-today-label">امروز</span>}</span>
+          <span className="cv-week-metrics"><span>{number(day?.taskCount ?? 0)} کار · {number(day?.scheduleCount ?? 0)} بازه</span><span className="cv-day-hours">{hours(day?.plannedMinutes ?? 0)}</span><span className="cv-day-completion">{number(day?.completedCount ?? 0)} / {number(day?.completableCount ?? 0)} انجام‌شده</span>{!!day?.deadlineCount && <span className="cv-deadline-mark">{number(day.deadlineCount)} سررسید</span>}</span>
         </button>;
       })}</div></div>
       <section className="cv-agenda" aria-label="برنامه‌ی روز انتخاب‌شده"><div className="cv-subheading"><h3>{formatDate(date, calendar, { weekday: 'long' })}</h3><span>{hours(selected?.plannedMinutes ?? 0)} · {number(selected?.agenda.length ?? 0)} مورد</span></div>
@@ -92,13 +89,14 @@ export function CalendarViews({ view, date, calendar, tasks, schedule, goals, we
     </>}
 
     {view === 'monthly' && period.month && <>
-      <p className="cv-hint">هر روز را برای باز کردن نمای روزانه انتخاب کنید. در صفحه‌ی کوچک، جدول را افقی پیمایش کنید.</p>
-      <div className="cv-scroll" role="region" aria-label="تقویم ماه؛ پیمایش افقی" tabIndex={0}><div className="cv-month-grid"><WeekdayLabels/>{monthCells(period.month).flat().map((key, cellIndex) => {
+      <p className="cv-hint">هر روز را برای باز کردن نمای روزانه انتخاب کنید. نشان نقطه تعداد کارها و بازه‌ها و نشان ◆ سررسید را مشخص می‌کند.</p>
+      <div className="cv-scroll" role="region" aria-label="تقویم ماه"><div className="cv-month-grid"><WeekdayLabels/>{monthCells(period.month).flat().map((key, cellIndex) => {
         if (!key) return <div className="cv-month-blank" key={`blank-${cellIndex}`} aria-hidden="true"/>;
         const day = index.get(key);
         const entries = day?.agenda ?? [];
         return <button type="button" key={key} className={`cv-month-day ${key === date ? 'is-selected' : ''}`} onClick={() => onSelectDate(key)} aria-current={key === today ? 'date' : undefined} aria-label={`${dayLabel(key, calendar, day)}${key === today ? '؛ امروز' : ''}؛ باز کردن روز`}>
           <span className="cv-day-top"><strong>{number(calendarParts(key, calendar).day)}</strong>{key === today && <span className="cv-today-label">امروز</span>}</span>
+          <span className="cv-month-indicators" aria-hidden="true">{!!entries.length && <span className="cv-month-activity"><i/>{number(entries.length)}</span>}{!!day?.deadlineCount && <span className="cv-month-due">◆</span>}</span>
           <span className="cv-month-count">{number(day?.taskCount ?? 0)} کار · {number(day?.scheduleCount ?? 0)} بازه</span>
           <span className="cv-month-entries">{entries.slice(0, 2).map(entry => <span className={`cv-month-entry ${entry.completed ? 'is-complete' : ''}`} key={entry.key}><i style={{ backgroundColor: entry.item.color }} aria-hidden="true"/>{entry.completed && <span aria-label="انجام‌شده">✓ </span>}{entry.item.title}</span>)}{entries.length > 2 && <span className="cv-overflow">+{number(entries.length - 2)} مورد دیگر</span>}</span>
           {!!day?.deadlineCount && <span className="cv-month-deadline">سررسید: {day.deadlines[0].title}{day.deadlineCount > 1 ? ` (+${number(day.deadlineCount - 1)})` : ''}</span>}
