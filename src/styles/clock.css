@@ -30,10 +30,7 @@
 .clock-now .clock-now-core { fill: var(--green); stroke: none; }
 :root[data-theme-parent="mini"] .second-hand { display: none; }
 :root[data-theme-parent="hacker"] .clock-agenda { box-shadow: none; }
-@supports (backdrop-filter: blur(1px)) {
-  :root[data-theme-effect="acrylic"] .clock-agenda { background: color-mix(in srgb, var(--paper) 85%, transparent); backdrop-filter: blur(14px); }
-  :root[data-theme-effect="liquid-glass"] .clock-agenda { background: color-mix(in srgb, var(--paper) 75%, transparent); backdrop-filter: blur(22px) saturate(1.5); }
-}
+
 .data-loading { margin: 12px 0; color: var(--muted); font-size: 11px; }
 .load-error { margin: 20px 0; padding: 16px; background: var(--paper); border: 1px solid var(--theme-danger, #a33434); border-radius: var(--radius-md); color: var(--ink); font-size: 12px; }
 @media (max-width: 1000px) { :root[data-rooz-theme] .clock-layout { grid-template-columns: minmax(300px, 1fr) minmax(250px, .75fr); gap: 20px; } .clock-agenda { padding: 18px; } }

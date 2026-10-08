@@ -1,0 +1,91 @@
+/* Top-layer menus still inherit the dialog's theme, but never its glass material. */
+:root .select-menu[data-select-owner][data-select-strategy] {
+  position: fixed;
+  inset: auto;
+  margin: 0;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 0;
+  height: auto;
+  max-width: none;
+  z-index: 1000;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding: 5px;
+  border: 1px solid var(--theme-border, #dfe8e1);
+  border-radius: var(--theme-radius, 12px);
+  background: var(--theme-surface, #fff);
+  color: var(--theme-text, #53645a);
+  font-family: inherit;
+  font-size: 12px;
+  box-shadow: var(--theme-shadow, 0 12px 36px #26382e26);
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  filter: none;
+  transform: none;
+  animation: none;
+  transition: none;
+  opacity: 1;
+  scrollbar-width: thin;
+  scrollbar-color: var(--theme-border, #dce5dd) transparent;
+}
+
+:root .select-menu[data-select-owner]:not([data-positioned="true"]) {
+  visibility: hidden;
+  pointer-events: none;
+}
+
+.select-menu[data-select-owner]::backdrop {
+  background: transparent;
+  pointer-events: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+:root .select-menu[data-select-owner] .select-option {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 40px;
+  padding: 8px 10px;
+  border-radius: 7px;
+  line-height: 1.7;
+  text-align: start;
+  white-space: normal;
+  cursor: pointer;
+}
+
+.select-menu[data-select-owner] .select-option > span {
+  min-width: 0;
+  overflow: visible;
+  overflow-wrap: anywhere;
+  white-space: normal;
+  text-overflow: clip;
+}
+
+.select-menu[data-select-owner] .select-option > svg {
+  flex-shrink: 0;
+  color: var(--theme-accent, #61866e);
+}
+
+:root .select-menu[data-select-owner] .select-option.is-active {
+  background: var(--theme-accent-wash, #edf4ee);
+  color: var(--theme-text, #42664e);
+}
+
+:root .select-menu[data-select-owner] .select-option[aria-selected="true"] {
+  color: var(--theme-accent, #42664e);
+  font-weight: 500;
+}
+
+.select-menu[data-select-owner] .select-option[aria-disabled="true"] {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.select-trigger:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}

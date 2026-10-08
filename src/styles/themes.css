@@ -14,7 +14,12 @@
   --theme-shadow: 0 16px 50px #32433b14;
   --theme-duration: .14s;
   --theme-easing: ease;
-  --theme-overlay: #23302a55;
+  --theme-overlay: #16203355;
+  --theme-panel-background: var(--theme-surface);
+  --theme-panel-image: none;
+  --theme-panel-filter: none;
+  --theme-panel-border: var(--theme-border);
+  --theme-panel-shadow: var(--theme-shadow);
 }
 :root[data-rooz-theme] {
   --ink: var(--theme-text);
@@ -89,26 +94,82 @@
 :root[data-rooz-theme] :is(input, select, textarea, button, a):focus-visible { outline: 2px solid var(--theme-accent); outline-offset: 2px; }
 :root[data-rooz-theme] :is(.do-field input:focus, .do-field select:focus, .do-field textarea:focus) { border-color: var(--theme-accent); box-shadow: var(--focus); }
 
-/* Solid surfaces are the fallback when backdrop filters are unavailable. */
+/* One material contract covers daily, calendar, dialog, and editor preview surfaces. */
+:root[data-rooz-theme][data-theme-effect] :is(.todo-section, .note-section, .schedule-list, .calendar-panel, .settings-dialog, .theme-confirm-dialog, .do-dialog, .task-manager, .clock-hover-card, .clock-agenda, .theme-preview-card, .cv-summary, .cv-year-month) {
+  background-color: var(--theme-panel-background);
+  background-image: var(--theme-panel-image);
+  backdrop-filter: var(--theme-panel-filter);
+  -webkit-backdrop-filter: var(--theme-panel-filter);
+  border-color: var(--theme-panel-border);
+  box-shadow: var(--theme-panel-shadow);
+}
+:root[data-rooz-theme] body { isolation: isolate; }
+:root[data-rooz-theme] body::before {
+  content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: radial-gradient(ellipse at 12% 25%, color-mix(in srgb, var(--theme-accent) 28%, transparent), transparent 48%), radial-gradient(ellipse at 90% 65%, var(--theme-background-end), transparent 55%);
+}
+:root[data-theme-effect="none"] body::before,
+:root[data-theme-parent="mini"] body::before { display: none; }
+/* Unsupported browsers keep opaque, readable surfaces, never invisible panels. */
 @supports (backdrop-filter: blur(1px)) {
-  :root[data-theme-effect="acrylic"] :is(.todo-section, .note-section, .schedule-list, .calendar-panel, .settings-dialog, .theme-confirm-dialog, .do-dialog, .task-manager, .clock-hover-card) {
-    background: color-mix(in srgb, var(--theme-surface) 85%, transparent);
-    backdrop-filter: blur(14px);
+  :root[data-theme-effect="acrylic"] {
+    --theme-panel-background: color-mix(in srgb, var(--theme-surface) var(--theme-acrylic-opacity, 68%), transparent);
+    --theme-panel-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' opacity='.065' filter='url(%23n)'/%3E%3C/svg%3E"), linear-gradient(135deg, color-mix(in srgb, var(--theme-text) 7%, transparent), transparent 60%);
+    --theme-panel-filter: blur(22px) saturate(.85);
+    --theme-panel-border: color-mix(in srgb, var(--theme-text) 18%, transparent);
+    --theme-panel-shadow: inset 0 1px 0 color-mix(in srgb, var(--theme-text) 12%, transparent), 0 18px 48px #050a1420;
   }
-  :root[data-theme-effect="liquid-glass"] :is(.todo-section, .note-section, .schedule-list, .calendar-panel, .settings-dialog, .theme-confirm-dialog, .do-dialog, .task-manager, .clock-hover-card) {
-    background: color-mix(in srgb, var(--theme-surface) 75%, transparent);
-    backdrop-filter: blur(22px) saturate(1.5);
-    box-shadow: inset 0 1px 0 color-mix(in srgb, var(--theme-text) 18%, transparent), var(--theme-shadow);
+  :root[data-theme-effect="liquid-glass"] {
+    --theme-panel-background: color-mix(in srgb, var(--theme-surface) var(--theme-glass-opacity, 38%), transparent);
+    --theme-panel-image: linear-gradient(135deg, color-mix(in srgb, var(--theme-text) 16%, transparent), transparent 36%, transparent 70%, color-mix(in srgb, var(--theme-accent) 12%, transparent));
+    --theme-panel-filter: blur(30px) saturate(1.8);
+    --theme-panel-border: color-mix(in srgb, var(--theme-text) 30%, transparent);
+    --theme-panel-shadow: inset 0 1px 0 color-mix(in srgb, var(--theme-text) 42%, transparent), inset 1px 0 0 color-mix(in srgb, var(--theme-text) 16%, transparent), inset 0 -1px 0 color-mix(in srgb, var(--theme-accent) 22%, transparent), 0 20px 56px #050a142b;
   }
+  :root[data-rooz-theme][data-theme-effect]:is([data-theme-effect="acrylic"], [data-theme-effect="liquid-glass"]) :is(.topbar, .view-tabs) {
+    background: var(--theme-panel-background); backdrop-filter: var(--theme-panel-filter); -webkit-backdrop-filter: var(--theme-panel-filter);
+    border: 1px solid var(--theme-panel-border); box-shadow: var(--theme-panel-shadow);
+  }
+  :root:is([data-theme-effect="acrylic"], [data-theme-effect="liquid-glass"]) .topbar { padding-inline: 16px; margin-top: 12px; border-radius: var(--radius-lg); }
+  :root[data-rooz-theme][data-theme-effect="liquid-glass"] .calendar-panel :is(.cv-summary, .cv-year-month) { background-color: color-mix(in srgb, var(--theme-surface) 24%, transparent); }
+  :root[data-theme-effect="liquid-glass"] .modal-backdrop { backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); }
 }
-:root[data-rooz-theme] *, :root[data-rooz-theme] *::before, :root[data-rooz-theme] *::after {
-  transition-duration: var(--theme-duration);
-  transition-timing-function: var(--theme-easing);
-  animation-duration: var(--theme-duration);
-  animation-timing-function: var(--theme-easing);
+:root[data-rooz-theme] :is(.range path, .marker-dot, .switch-track, .switch-track b, .select-trigger > svg) {
+  transition-duration: var(--theme-duration); transition-timing-function: var(--theme-easing);
 }
-:root[data-theme-animation="full"] :is(.theme-choice, .button):hover:not(:disabled) { transform: translateY(-2px); }
-:root[data-theme-animation="tech"] :is(.theme-choice, .button):hover:not(:disabled) { outline: 1px dashed var(--theme-accent); outline-offset: 3px; }
+/* Motion changes actual properties, not just the duration of nonexistent transitions. */
+:root[data-rooz-theme] :is(button, .cv-year-month, .theme-preview-card) {
+  transition-property: background-color, border-color, box-shadow, color, transform, opacity;
+  transition-duration: var(--theme-duration); transition-timing-function: var(--theme-easing);
+}
+:root[data-rooz-theme] :is(.settings-dialog, .do-dialog, .task-manager, .clock-hover-card) { animation-duration: var(--theme-duration); animation-timing-function: var(--theme-easing); }
+/* A single material belongs to the dialog shell; its header, scroller and footer share it. */
+:root[data-rooz-theme] :is(.do-dialog, .task-manager) { max-height: 90dvh; min-height: 0; }
+:root[data-rooz-theme] :is(.do-header, .do-footer, .manager-header) { background: transparent; }
+:root[data-rooz-theme] :is(.do-form-scroll, .settings-scroll) { min-height: 0; scrollbar-gutter: stable; }
+:root[data-rooz-theme] .do-field { font-size: 12px; }
+:root[data-rooz-theme] .do-field :is(input:not([type="range"]):not([type="checkbox"]):not([type="radio"]), textarea, .select-trigger) { font-size: 12px; min-height: 42px; }
+:root[data-rooz-theme] .manager-filters label { font-size: 11px; }
+:root[data-rooz-theme] .manager-filters .select-trigger { font-size: 12px; min-height: 40px; }
+:root[data-rooz-theme] .manager-body { min-height: 0; }
+:root[data-rooz-theme] .manager-filters { max-height: 32dvh; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; scrollbar-color: var(--theme-border) transparent; }
+:root[data-theme-animation="subtle"] :is(.calendar-panel, .clock-agenda, .theme-preview-card) { animation: theme-soft-enter .3s var(--theme-easing) both; }
+:root[data-theme-animation="subtle"] :is(.theme-choice, .button, .cv-year-month):hover:not(:disabled) { transform: translateY(-2px); }
+:root[data-theme-animation="full"] :is(.calendar-panel, .clock-agenda, .theme-preview-card) { animation: theme-full-enter .65s var(--theme-easing) both; }
+:root[data-theme-animation="full"] .cv-year-month { animation: theme-full-enter .6s var(--theme-easing) both; }
+:root[data-theme-animation="full"] .cv-year-month:nth-child(4n+2) { animation-delay: .05s; }
+:root[data-theme-animation="full"] .cv-year-month:nth-child(4n+3) { animation-delay: .1s; }
+:root[data-theme-animation="full"] .cv-year-month:nth-child(4n) { animation-delay: .15s; }
+:root[data-theme-animation="full"] :is(.theme-choice, .button, .theme-preview-card, .cv-year-month):hover:not(:disabled) { transform: translateY(-5px) scale(1.015); box-shadow: var(--theme-panel-shadow), 0 8px 28px color-mix(in srgb, var(--theme-accent) 18%, transparent); }
+:root[data-theme-animation="full"] .theme-preview-orb { animation: theme-orb-drift 5s ease-in-out infinite alternate; }
+:root[data-theme-animation="tech"] :is(.calendar-panel, .clock-agenda, .theme-preview-card) { animation: theme-tech-enter .4s steps(5, end) both; }
+:root[data-theme-animation="tech"] :is(.theme-choice, .button, .cv-year-month):hover:not(:disabled) { transform: translate(-2px, -2px); outline: 1px dashed var(--theme-accent); outline-offset: 3px; }
+:root[data-theme-animation="tech"] .theme-preview-orb { animation: theme-tech-pulse 2s steps(4, end) infinite; }
+@keyframes theme-soft-enter { from { opacity: .6; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes theme-full-enter { from { opacity: 0; transform: translateY(22px) scale(.975); } to { opacity: 1; transform: none; } }
+@keyframes theme-tech-enter { from { opacity: .2; transform: translateX(12px); clip-path: inset(0 0 80% 0); } to { opacity: 1; transform: none; clip-path: inset(0); } }
+@keyframes theme-orb-drift { from { transform: translate(-24px, 0) scale(.9); } to { transform: translate(32px, 12px) scale(1.12); } }
+@keyframes theme-tech-pulse { 0%, 100% { opacity: .5; transform: translateX(-12px); } 50% { opacity: 1; transform: translateX(12px); } }
 :root[data-theme-animation="none"],
 :root[data-theme-animation="none"] *,
 :root[data-theme-animation="none"] *::before,
@@ -130,50 +191,22 @@
   box-shadow: none !important;
 }
 :root[data-theme-parent="mini"] :is(.todo-section, .note-section, .schedule-list, .calendar-panel, .settings-dialog, .theme-confirm-dialog, .do-dialog, .task-manager, .clock-hover-card) { background: var(--theme-surface) !important; }
-:root[data-theme-parent="mini"] :is(.do-button, .theme-choice, .button):hover { transform: none; }
+:root[data-theme-parent="mini"] :is(.do-button, .theme-choice, .button, .cv-year-month, .theme-preview-card):hover { transform: none; }
+:root[data-theme-parent="mini"] { --theme-panel-background: var(--theme-surface); --theme-panel-image: none; --theme-panel-filter: none; --theme-panel-border: var(--theme-border); --theme-panel-shadow: none; }
 @media (prefers-reduced-motion: reduce) {
   :root[data-rooz-theme], :root[data-rooz-theme] *, :root[data-rooz-theme] *::before, :root[data-rooz-theme] *::after {
     animation: none !important;
     transition: none !important;
     scroll-behavior: auto !important;
   }
-  :root[data-rooz-theme] :is(.theme-choice, .button):hover { transform: none; }
+  :root[data-rooz-theme] :is(.theme-choice, .button, .cv-year-month, .theme-preview-card):hover { transform: none; }
 }
 
-.theme-settings-backdrop { z-index: 60; }
-.settings-dialog.theme-settings-dialog { width: min(100%, 700px); max-height: 90vh; max-height: 90dvh; overflow-y: auto; overscroll-behavior: contain; padding: 24px; background: var(--theme-surface); color: var(--theme-text); border-color: var(--theme-border); }
-.theme-settings-fields { border: 0; margin: 0; padding: 0; min-width: 0; }
-.theme-settings-section { border-top: 1px solid var(--theme-border); padding: 16px 0; }
-.theme-settings-section h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 14px; }
-.theme-help { color: var(--theme-muted); font-size: 11px; line-height: 1.9; margin: 8px 0 12px; }
-.theme-mode-switch { display: flex; gap: 6px; margin-bottom: 12px; }
-.theme-mode-switch button { border: 1px solid var(--theme-border); background: var(--theme-surface-raised); padding: 7px 18px; border-radius: var(--theme-radius); }
-.theme-mode-switch button[aria-pressed="true"] { border-color: var(--theme-accent); color: var(--theme-text); background: var(--theme-accent-wash); }
-.theme-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
-.theme-choice { display: flex; flex-direction: column; gap: 6px; padding: 12px; text-align: start; border: 1px solid var(--theme-border); background: var(--theme-surface-raised); border-radius: var(--theme-radius); overflow-wrap: anywhere; transition: transform var(--theme-duration); }
-.theme-choice small { color: var(--theme-muted); font-size: 10px; line-height: 1.7; }
-.theme-choice[aria-pressed="true"] { border-color: var(--theme-accent); background: var(--theme-accent-wash); outline: 1px solid var(--theme-accent); }
-.theme-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-.theme-editor { border: 1px solid var(--theme-border); border-radius: var(--theme-radius); padding: 16px; margin-top: 12px; }
-.theme-editor h4 { margin: 0 0 10px; }
-.theme-controls-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.theme-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; font-size: 11px; color: var(--theme-text); min-width: 0; }
-.theme-field :is(input, select) { min-width: 0; width: 100%; min-height: 38px; padding: 7px 10px; border: 1px solid var(--theme-border); border-radius: var(--theme-radius); color: var(--theme-text); background: var(--theme-surface-raised); }
-.theme-field input[type="color"] { padding: 3px; height: 38px; }
-.theme-field input[type="range"] { padding: 0; }
-.theme-field select:disabled { opacity: .6; }
-.button.theme-danger { color: var(--theme-danger); background: var(--theme-danger-wash); border-color: var(--theme-danger); }
-.theme-error { color: var(--theme-danger); background: var(--theme-danger-wash); border: 1px solid var(--theme-danger); border-radius: var(--theme-radius); padding: 10px; font-size: 12px; overflow-wrap: anywhere; }
+
 .theme-confirm-backdrop { position: fixed; inset: 0; z-index: 70; display: grid; place-items: center; padding: 18px; background: var(--theme-overlay); }
 .theme-confirm-dialog { width: min(100%, 480px); max-height: 90vh; overflow-y: auto; padding: 24px; color: var(--theme-text); background: var(--theme-surface); border: 1px solid var(--theme-border); border-radius: var(--theme-radius); box-shadow: var(--theme-shadow); }
 .theme-confirm-dialog h2 { margin: 0 0 12px; font-size: 18px; }
 .theme-confirm-dialog p { line-height: 1.9; font-size: 12px; }
-.theme-settings-dialog .dialog-actions { position: sticky; bottom: -24px; margin-bottom: -24px; padding-bottom: 24px; background: var(--theme-surface); }
 @media (max-width: 480px) {
-  .settings-dialog.theme-settings-dialog { padding: 16px; }
-  .theme-choices { grid-template-columns: 1fr; }
-  .theme-controls-grid { grid-template-columns: 1fr; gap: 0; }
-  .theme-settings-dialog .setting-row { flex-wrap: wrap; }
-  .theme-settings-dialog .dialog-actions { bottom: -16px; margin-bottom: -16px; padding-bottom: 16px; flex-wrap: wrap; }
-  .theme-tools .button, .theme-confirm-dialog .button { height: auto; min-height: 39px; padding: 10px; }
+  .theme-confirm-dialog .button { height: auto; min-height: 39px; padding: 10px; }
 }

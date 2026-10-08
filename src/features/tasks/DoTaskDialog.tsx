@@ -1,9 +1,10 @@
-import { Children, cloneElement, isValidElement, useEffect, useId, useState, type FormEvent, type ReactElement, type ReactNode } from 'react';
+import { Children, cloneElement, isValidElement, useEffect, useId, useRef, useState, type FormEvent, type ReactElement, type ReactNode } from 'react';
 import { X } from 'lucide-react';
 import type { CalendarSystem, Goal, GoalInput, GoalRelation, MidTermGoalInput, RoutinePattern, ShortTermTask, ShortTermTaskInput } from '../../domain/models';
 import { calendarParts, calendarYearEndKey, todayKey } from '../calendar/calendar';
 import { CalendarDateField } from '../../components/CalendarDateField';
 import { SelectField } from '../../components/SelectField';
+import { useDialogFocus } from '../themes/useDialogFocus';
 
 type TaskType = 'long-term' | 'mid-term' | 'short-term';
 type MidForm = Omit<MidTermGoalInput, 'kind' | 'title'>;
@@ -37,6 +38,7 @@ export function DoTaskDialog({ open, calendar, goals, editing, onClose, onSaveGo
   onSaveGoal: (goal: GoalInput) => Promise<void>; onSaveShortTask: (task: ShortTermTaskInput) => Promise<void>;
   onUpdateGoal: (id: string, goal: GoalInput) => Promise<void>; onUpdateShortTask: (id: string, task: ShortTermTaskInput) => Promise<void>;
 }) {
+  const dialog = useRef<HTMLFormElement>(null);
   const [type, setType] = useState<TaskType>('short-term');
   const [goalTitle, setGoalTitle] = useState(''); const [longYear, setLongYear] = useState(calendarParts(todayKey(), calendar).year + 1); const [longNote, setLongNote] = useState('');
   const [mid, setMid] = useState<MidForm>(initialMidForm); const [midTitle, setMidTitle] = useState('');
@@ -49,6 +51,7 @@ export function DoTaskDialog({ open, calendar, goals, editing, onClose, onSaveGo
   const midGoals = goals.filter((goal): goal is Extract<Goal, { kind: 'mid-term' }> => goal.kind === 'mid-term');
   const longGoals = goals.filter((goal): goal is Extract<Goal, { kind: 'long-term' }> => goal.kind === 'long-term');
   const currentYear = calendarParts(todayKey(), calendar).year;
+  useDialogFocus(dialog, () => { if (!saving) onClose(); }, false, open);
 
   useEffect(() => { if (!open) return; setError(''); setType('short-term'); setGoalTitle(''); setLongYear(currentYear + 1); setLongNote(''); setMid(initialMidForm()); setMidTitle(''); setShortMode('job'); setShortTitle(''); setJobDate(''); setJobTime(''); setPriority(5); setShortRelations([]); setPattern('daily'); setRoutineDays([6, 0, 1, 2, 3, 4, 5]); setRoutineStart(todayKey()); setRoutineEnd(''); setInfinite(true); setIsTimed(false); setStartTime('09:00'); setEndTime('10:00'); setColor(colors[0]);
     if (!editing) return;
@@ -89,7 +92,7 @@ export function DoTaskDialog({ open, calendar, goals, editing, onClose, onSaveGo
   const yearOptions = Array.from({ length: 46 }, (_, index) => currentYear - 30 + index);
   const relatedMidPicker = <RelationPicker goals={midGoals} values={shortRelations} onChange={setShortRelations} emptyText="برای پیوند دادن کار، ابتدا یک هدف میان‌مدت بسازید."/>;
   const relatedLongPicker = <RelationPicker goals={longGoals} values={mid.relatedLongTermGoals} onChange={value => changeMid('relatedLongTermGoals', value)} emptyText="هنوز هدف بلندمدتی نساخته‌اید؛ این پیوند اختیاری است."/>;
-  return <div className="modal-backdrop do-backdrop" onMouseDown={event => event.target === event.currentTarget && onClose()}><form className="do-dialog" onSubmit={submit} aria-labelledby="do-title">
+  return <div className="modal-backdrop do-backdrop" onMouseDown={event => event.target === event.currentTarget && onClose()}><form ref={dialog} className="do-dialog" role="dialog" aria-modal="true" tabIndex={-1} onSubmit={submit} aria-labelledby="do-title">
     <header className="do-header"><div><span className="do-kicker">{editing ? 'ویرایش مورد انتخاب‌شده' : 'طراحی هدف و اقدام'}</span><h2 id="do-title">{editing ? 'جزئیات را به‌روز کن.' : 'برای چیزی که می‌خواهی، قدم بردار.'}</h2></div><button className="icon-button" type="button" aria-label="بستن" onClick={onClose}><X size={18}/></button></header>
     {!editing && <div className="do-type-switch" role="tablist" aria-label="نوع کار">{([['long-term', 'بلندمدت'], ['mid-term', 'میان‌مدت'], ['short-term', 'کوتاه‌مدت']] as const).map(([value, label], index) => <button type="button" role="tab" aria-selected={type === value} className={type === value ? 'active' : ''} key={value} onClick={() => { setType(value); setError(''); }}><small>{new Intl.NumberFormat('fa-IR', { minimumIntegerDigits: 2 }).format(index + 1)}</small>{label}</button>)}</div>}
     <div className="do-form-scroll">

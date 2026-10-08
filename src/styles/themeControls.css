@@ -1,0 +1,157 @@
+/* Control chrome follows the active parent/mode; spectrum colors are color data. */
+.theme-settings-dialog .theme-color-field {
+  display: block;
+  margin: 0;
+  padding: 8px;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius);
+  background: var(--theme-surface-raised);
+  min-inline-size: 0;
+  align-self: start;
+}
+.theme-color-summary { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.theme-settings-dialog .theme-color-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--theme-text);
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+}
+.theme-color-toggle > span:not(.theme-color-sample) { flex: 1; }
+.theme-color-toggle > svg { flex-shrink: 0; transition: transform var(--theme-duration); }
+.theme-color-toggle[aria-expanded="true"] > svg { transform: rotate(180deg); }
+.theme-color-field:disabled .theme-color-summary { opacity: .55; }
+.theme-color-field:disabled .theme-color-toggle { cursor: not-allowed; }
+.theme-color-details { padding-top: 12px; }
+.theme-color-details[hidden] { display: none; }
+.theme-color-validation.theme-control-help { margin: 6px 0 0; }
+/* Keep the format hint available to assistive technology without making each row tall. */
+.theme-color-validation-valid { position: absolute; width: 1px; height: 1px; padding: 0; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.theme-color-presets { display: flex; flex-wrap: wrap; gap: 7px; margin-bottom: 10px; }
+.theme-settings-dialog .theme-color-field .theme-color-preset {
+  width: 28px;
+  height: 28px;
+  min-width: 28px;
+  padding: 0;
+  border: 2px solid var(--theme-border);
+  border-radius: min(7px, var(--theme-radius));
+  cursor: pointer;
+}
+.theme-color-preset[aria-pressed="true"] { outline: 2px solid var(--theme-accent); outline-offset: 2px; }
+.theme-color-plane {
+  position: relative;
+  width: 100%;
+  height: 140px;
+  margin-block: 2px;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius);
+  /* White reduces saturation, black reduces value; these are color data. */
+  background: linear-gradient(to top, #000, transparent), linear-gradient(to right, #fff, transparent), var(--theme-picker-hue);
+  touch-action: none;
+  cursor: crosshair;
+  user-select: none;
+}
+.theme-color-plane:focus-visible {
+  outline: 2px solid var(--theme-accent);
+  outline-offset: 3px;
+}
+.theme-color-plane[aria-disabled="true"] { cursor: not-allowed; opacity: .55; }
+.theme-color-cursor {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 2px solid var(--theme-surface);
+  outline: 1px solid var(--theme-text);
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+.theme-control-help { margin: 3px 0 8px; color: var(--theme-muted); font-size: 10px; line-height: 1.8; }
+.theme-control-invalid { color: var(--theme-danger); }
+.theme-color-hue-label, .theme-angle-field > label { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.theme-color-sample { width: 26px; height: 26px; flex: 0 0 26px; border: 1px solid var(--theme-border); border-radius: min(6px, var(--theme-radius)); }
+.theme-settings-dialog .theme-color-field input.theme-color-hex { width: 104px; flex: 0 0 104px; min-width: 0; min-height: 34px; padding: 6px 8px; font-family: monospace; font-size: 12px; background: var(--theme-surface); color: var(--theme-text); }
+.theme-settings-dialog .theme-color-field input[aria-invalid="true"] { border-color: var(--theme-danger); }
+
+.theme-settings-dialog .theme-field input.theme-range {
+  --theme-range-track: linear-gradient(to right, var(--theme-accent-wash), var(--theme-accent));
+  appearance: none;
+  -webkit-appearance: none;
+  width: 100%;
+  height: 30px;
+  min-height: 30px;
+  margin: 4px 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  cursor: pointer;
+  direction: ltr;
+}
+.theme-settings-dialog .theme-field input.theme-hue-range {
+  --theme-range-track: linear-gradient(to right, #f00, #ff0, #0f0, #0ff, #00f, #f0f, #f00);
+}
+.theme-settings-dialog .theme-field input.theme-range::-webkit-slider-runnable-track {
+  height: 10px;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius);
+  background: var(--theme-range-track);
+}
+.theme-settings-dialog .theme-field input.theme-range::-moz-range-track {
+  height: 8px;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius);
+  background: var(--theme-range-track);
+}
+.theme-settings-dialog .theme-field input.theme-range::-webkit-slider-thumb {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 20px;
+  height: 20px;
+  margin-top: -6px;
+  border: 2px solid var(--theme-accent);
+  border-radius: min(10px, var(--theme-radius));
+  background: var(--theme-surface);
+}
+.theme-settings-dialog .theme-field input.theme-range::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  border: 2px solid var(--theme-accent);
+  border-radius: min(10px, var(--theme-radius));
+  background: var(--theme-surface);
+}
+.theme-settings-dialog .theme-field input.theme-range:focus-visible { outline: 2px solid var(--theme-accent); outline-offset: 2px; }
+.theme-settings-dialog .theme-field input.theme-range:disabled { cursor: not-allowed; opacity: .55; }
+.theme-settings-dialog .theme-field .select-trigger { color: var(--theme-text); background: var(--theme-surface-raised); border-color: var(--theme-border); }
+
+/* Material and motion variants are owned by themes.css. */
+.theme-material-preview {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  padding: 30px 18px;
+  min-height: 200px;
+  border: 1px solid var(--theme-border);
+  border-radius: var(--theme-radius);
+  background: var(--theme-background);
+  background-size: var(--theme-background-size);
+}
+.theme-preview-orb { position: absolute; width: 140px; height: 140px; top: 12px; left: 12%; border-radius: 50%; background: var(--theme-accent); }
+.theme-preview-card { position: relative; width: min(100%, 320px); padding: 20px; border: 1px solid var(--theme-border); border-radius: var(--theme-radius); background: var(--theme-surface); color: var(--theme-text); box-shadow: var(--theme-shadow); }
+.theme-preview-card p { margin: 8px 0 14px; color: var(--theme-muted); font-size: 11px; line-height: 1.9; }
+.theme-settings-dialog .theme-preview-action { color: var(--theme-on-accent); background: var(--theme-accent); border-color: var(--theme-accent); }
+@media (prefers-reduced-motion: reduce) {
+  .theme-material-preview *, .theme-color-field * { animation: none !important; transition: none !important; }
+  .theme-preview-action:hover, .theme-preview-action:focus-visible { transform: none !important; }
+}
+@media (max-width: 480px) { .theme-color-plane { height: 160px; } }

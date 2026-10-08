@@ -1,6 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import { Search, Trash2, X } from 'lucide-react';
 import { SelectField } from '../../components/SelectField';
+import { useDialogFocus } from '../themes/useDialogFocus';
 import type { CalendarSystem, Goal, MidTermGoal, ShortTermTask } from '../../domain/models';
 import { calendarParts, formatDate, todayKey } from '../calendar/calendar';
 
@@ -26,6 +27,8 @@ export function TaskManagerDialog({ open, goals, shortTasks, calendar, getProgre
   open: boolean; goals: Goal[]; shortTasks: ShortTermTask[]; calendar: CalendarSystem;
   getProgress: (item: Goal) => number; onClose: () => void; onEdit: (item: ManagedItem) => void; onDelete: (item: ManagedItem) => Promise<void>;
 }) {
+  const dialog = useRef<HTMLElement>(null);
+  useDialogFocus(dialog, onClose, false, open);
   const [query, setQuery] = useState(''); const [kind, setKind] = useState<KindFilter>('all'); const [status, setStatus] = useState<StatusFilter>('all');
   const [category, setCategory] = useState('all'); const [deadline, setDeadline] = useState('all'); const [deadlineYear, setDeadlineYear] = useState('all'); const [priority, setPriority] = useState(1); const [importance, setImportance] = useState(1); const [pattern, setPattern] = useState('all'); const [timeMode, setTimeMode] = useState('all'); const [relatedGoal, setRelatedGoal] = useState('all');
   const [selectedId, setSelectedId] = useState('');
@@ -91,7 +94,7 @@ export function TaskManagerDialog({ open, goals, shortTasks, calendar, getProgre
     return item.mode === 'job' ? [['نوع', 'کار مشخص'], ['وضعیت', item.completed ? 'انجام‌شده' : 'باز'], ['تاریخ', item.triggerDate], ['ساعت', item.triggerTime], ['اولویت', `${item.priority} از ۱۰`], ['اهداف میان‌مدت مرتبط', relations], ['ایجاد شده', item.createdAt.slice(0, 10)]] : [['نوع', 'روتین'], ['وضعیت امروز', item.completedDates.includes(todayKey()) ? 'انجام‌شده' : 'باز'], ['تکرار', item.routine ? patternLabels[item.routine.pattern] : 'ثبت نشده'], ['روزهای انتخابی', item.routine?.weekdays.map(day => weekdayNames[day]).join('، ')], ['شروع', item.routine?.startDate], ['پایان', item.routine?.endDate ?? 'بدون پایان'], ['بازه‌ی زمانی', item.routine?.isTimed ? `${item.routine.startTime} تا ${item.routine.endTime}` : 'ندارد'], ['اولویت', `${item.priority} از ۱۰`], ['اهداف میان‌مدت مرتبط', relations], ['روزهای انجام‌شده', item.completedDates.length]];
   }
 
-  return <div className="modal-backdrop manager-backdrop" onMouseDown={event => event.target === event.currentTarget && onClose()}><section className="task-manager" role="dialog" aria-modal="true" aria-labelledby="manager-title">
+  return <div className="modal-backdrop manager-backdrop" onMouseDown={event => event.target === event.currentTarget && onClose()}><section ref={dialog} className="task-manager" tabIndex={-1} role="dialog" aria-modal="true" aria-labelledby="manager-title">
     <header className="manager-header"><div><span className="eyebrow">مرور و مدیریت</span><h2 id="manager-title">همه‌ی هدف‌ها و کارها</h2></div><button className="icon-button" aria-label="بستن" onClick={onClose}><X size={18}/></button></header>
     <div className="manager-search"><Search size={17}/><input value={query} onChange={event => setQuery(event.target.value)} placeholder="جست‌وجو در عنوان و توضیحات…" aria-label="جست‌وجو"/><span>{new Intl.NumberFormat('fa-IR').format(filtered.length)} مورد</span></div>
     <div className="manager-filters">

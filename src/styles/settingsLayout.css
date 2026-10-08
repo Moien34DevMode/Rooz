@@ -1,0 +1,105 @@
+/* The dialog owns the material; only its content region scrolls. */
+.theme-settings-backdrop { z-index: 60; }
+section.settings-dialog.theme-settings-dialog {
+  display: flex;
+  flex-direction: column;
+  width: min(100%, 900px);
+  max-height: 90vh;
+  max-height: 90dvh;
+  min-height: 0;
+  padding: 0;
+  overflow: hidden;
+  color: var(--theme-text);
+  border-color: var(--theme-border);
+}
+.theme-settings-dialog .settings-header,
+.theme-settings-dialog .settings-footer {
+  position: static;
+  flex: 0 0 auto;
+  margin: 0;
+  padding: 18px 24px;
+  background: transparent;
+}
+.theme-settings-dialog .settings-header { border-bottom: 1px solid var(--theme-border); }
+.theme-settings-dialog .dialog-top { margin: 0 0 10px; gap: 12px; }
+.settings-header-details { display: flex; align-items: center; gap: 18px; }
+.settings-header-details > .theme-help { flex: 1; margin: 0; }
+.theme-settings-dialog .theme-mode-switch { display: flex; flex: 0 0 auto; gap: 4px; margin: 0; }
+.theme-mode-switch button { border: 1px solid var(--theme-border); background: var(--theme-surface-raised); color: var(--theme-text); padding: 7px 16px; border-radius: var(--theme-radius); }
+.theme-mode-switch button[aria-pressed="true"] { border-color: var(--theme-accent); background: var(--theme-accent-wash); }
+.theme-settings-dialog .settings-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  scrollbar-color: var(--theme-border) transparent;
+  padding: 18px 24px;
+  scroll-padding-block: 18px;
+}
+.theme-settings-fields { border: 0; margin: 0; padding: 0; min-inline-size: 0; }
+.theme-settings-dialog .theme-settings-section { border: 0; padding: 0; }
+.theme-settings-dialog .theme-settings-section + .theme-settings-section { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--theme-border); }
+.theme-settings-section h3 { display: flex; align-items: center; gap: 8px; margin: 0 0 12px; font-size: 14px; }
+.theme-help { color: var(--theme-muted); font-size: 11px; line-height: 1.9; margin: 8px 0 12px; }
+.theme-settings-dialog .setting-row { padding-top: 0; border-top: 0; }
+.theme-choices { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 12px 0; }
+.theme-choice { display: flex; flex-direction: column; gap: 6px; padding: 12px; text-align: start; border: 1px solid var(--theme-border); background: var(--theme-surface-raised); border-radius: var(--theme-radius); overflow-wrap: anywhere; transition: transform var(--theme-duration); }
+.theme-choice small { color: var(--theme-muted); font-size: 10px; line-height: 1.7; }
+.theme-choice[aria-pressed="true"] { border-color: var(--theme-accent); background: var(--theme-accent-wash); outline: 1px solid var(--theme-accent); }
+.theme-tools { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
+.theme-settings-dialog .theme-editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(240px, 280px);
+  gap: 22px;
+  align-items: start;
+  padding: 0;
+  margin: 0;
+  border: 0;
+  min-width: 0;
+}
+.theme-editor-form { display: grid; gap: 16px; min-width: 0; }
+.theme-editor-group { border: 1px solid var(--theme-border); border-radius: var(--theme-radius); padding: 12px; margin: 0; min-inline-size: 0; }
+.theme-editor-group > legend { padding-inline: 6px; font-size: 12px; font-weight: 600; }
+.theme-settings-dialog .theme-controls-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.theme-field { display: flex; flex-direction: column; gap: 7px; margin-bottom: 12px; font-size: 11px; color: var(--theme-text); min-width: 0; }
+.theme-field :is(input, select) { min-width: 0; width: 100%; min-height: 38px; padding: 7px 10px; border: 1px solid var(--theme-border); border-radius: var(--theme-radius); color: var(--theme-text); background: var(--theme-surface-raised); }
+.theme-settings-dialog .theme-controls-grid > .theme-field { margin: 0; }
+.theme-color-fields { display: grid; gap: 8px; margin-top: 12px; }
+.theme-mode-link { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-size: 12px; cursor: pointer; }
+.theme-mode-link input { width: 16px; height: 16px; margin: 0; flex-shrink: 0; accent-color: var(--theme-accent); }
+.theme-mode-link + .theme-control-help { margin-bottom: 0; }
+.theme-preview-sidebar { position: sticky; top: 0; align-self: start; min-width: 0; }
+.theme-preview-sidebar h4 { font-size: 12px; margin: 0 0 12px; }
+.theme-preview-sidebar > .theme-help { margin-bottom: 0; }
+.theme-settings-dialog .settings-footer { border-top: 1px solid var(--theme-border); }
+.theme-settings-dialog .settings-footer .dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  position: static;
+  inset: auto;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+}
+.theme-settings-dialog .button { height: auto; min-height: 39px; padding: 9px 13px; }
+.theme-settings-dialog .settings-footer .theme-error { margin: 0 0 10px; }
+.button.theme-danger { color: var(--theme-danger); background: var(--theme-danger-wash); border-color: var(--theme-danger); }
+.theme-error { color: var(--theme-danger); background: var(--theme-danger-wash); border: 1px solid var(--theme-danger); border-radius: var(--theme-radius); padding: 10px; font-size: 12px; overflow-wrap: anywhere; }
+@media (max-width: 760px) {
+  .theme-settings-dialog .theme-editor { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+  .theme-preview-sidebar { position: static; }
+}
+@media (max-width: 480px) {
+  .theme-settings-dialog .settings-header,
+  .theme-settings-dialog .settings-footer,
+  .theme-settings-dialog .settings-scroll { padding: 12px 16px; }
+  .settings-header-details { align-items: flex-start; flex-direction: column; gap: 10px; }
+  .theme-settings-dialog .theme-controls-grid { grid-template-columns: minmax(0, 1fr); gap: 10px; }
+  .theme-settings-dialog .theme-choices { grid-template-columns: minmax(0, 1fr); }
+  .theme-settings-dialog .setting-row { flex-wrap: wrap; }
+  .theme-settings-dialog .settings-footer .button { flex: 1 1 auto; }
+}

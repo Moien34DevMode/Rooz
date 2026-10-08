@@ -3,20 +3,25 @@ import { useEffect, useRef, type RefObject } from 'react';
 const focusables = (root: HTMLElement) => Array.from(root.querySelectorAll<HTMLElement>('button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex]:not([tabindex="-1"])')).filter(item => !item.closest('[hidden], [aria-hidden="true"]') && item.getClientRects().length > 0);
 
 /** Pausing preserves the settings opener while a nested confirmation owns focus. */
-export function useDialogFocus(root: RefObject<HTMLElement>, onEscape: () => void, paused = false) {
+export function useDialogFocus(root: RefObject<HTMLElement>, onEscape: () => void, paused = false, enabled = true) {
   const latest = useRef({ onEscape, paused });
   latest.current = { onEscape, paused };
   useEffect(() => {
     const dialog = root.current;
-    if (!dialog) return;
+    if (!enabled || !dialog) return;
     const document = dialog.ownerDocument;
     const opener = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-    const focusFirst = () => (dialog.querySelector<HTMLElement>('[data-autofocus]') ?? focusables(dialog)[0] ?? dialog).focus();
-    focusFirst();
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const focusFirst = () => (dialog.querySelector<HTMLElement>('[data-autofocus]') ?? focusables(dialog)[0] ?? dialog).focus({ preventScroll: true });
+    if (!dialog.contains(document.activeElement)) focusFirst();
     function keyDown(event: KeyboardEvent) {
       if (latest.current.paused) return;
       if (event.key === 'Escape') {
-        event.preventDefault(); event.stopPropagation(); latest.current.onEscape();
+        event.preventDefault(); event.stopPropagation();
+                const expanded = dialog!.querySelector<HTMLButtonElement>('[role="combobox"][aria-expanded="true"]');
+                if (expanded) { expanded.click(); expanded.focus({ preventScroll: true }); }
+                else latest.current.onEscape();
       } else if (event.key === 'Tab') {
         const items = focusables(dialog!);
         const index = items.indexOf(document.activeElement as HTMLElement);
@@ -33,7 +38,8 @@ export function useDialogFocus(root: RefObject<HTMLElement>, onEscape: () => voi
     return () => {
       document.removeEventListener('keydown', keyDown, true);
       document.removeEventListener('focusin', focusIn);
-      if (opener?.isConnected) opener.focus();
+      document.body.style.overflow = previousOverflow;
+      if (opener?.isConnected && !dialog.contains(opener)) opener.focus({ preventScroll: true });
     };
-  }, [root]);
+  }, [root, enabled]);
 }

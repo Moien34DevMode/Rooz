@@ -8,7 +8,7 @@ const server = await createServer({ server: { middlewareMode: true, watch: null,
 after(() => server.close());
 const {
   themeRegistry, parentThemes, defaultThemePreferences, normalizeThemePreferences,
-  normalizeThemeAppearance, createCustomTheme, resolveTheme, getThemeVariables
+  normalizeThemeAppearance, createCustomTheme, resolveTheme, getThemeVariables, deriveThemePalette, updateCustomAppearance, setCustomModeLink, switchThemeMode
 } = await server.ssrLoadModule('/src/features/themes/registry.ts');
 const { applyTheme } = await server.ssrLoadModule('/src/features/themes/applyTheme.ts');
 const { SettingsDialog } = await server.ssrLoadModule('/src/components/SettingsDialog.tsx');
@@ -87,19 +87,133 @@ test('mini forcibly removes every animation and effect in both modes, including 
   }
 });
 
-test('custom light/dark overrides stay independent and inherit semantic colors from their parent', () => {
+test('custom light/dark overrides stay independent and derive semantic colors from their own background', () => {
   const custom = createCustomTheme('custom', 'My theme', 'hacker');
   custom.modes.light = { ...custom.modes.light, accent: '#123456', animation: 'full', effect: 'liquid-glass', background: { kind: 'gradient', color: '#ffffff', endColor: '#112233', angle: 45 } };
   custom.modes.dark = { ...custom.modes.dark, accent: '#abcdef', animation: 'none', effect: 'acrylic' };
   const light = resolveTheme(preferences(custom));
   const dark = resolveTheme(preferences(custom, 'dark'));
-  assert.equal(light.palette.surface, themeRegistry.hacker.modes.light.surface);
-  assert.equal(dark.palette.surface, themeRegistry.hacker.modes.dark.surface);
+  assert.deepEqual(light.palette, deriveThemePalette(light.appearance, 'light'));
+  assert.deepEqual(dark.palette, deriveThemePalette(dark.appearance, 'dark'));
+  assert.notEqual(light.palette.surface, themeRegistry.hacker.modes.light.surface);
+  assert.notEqual(dark.palette.surface, themeRegistry.hacker.modes.dark.surface);
   assert.equal(light.appearance.accent, '#123456');
   assert.equal(dark.appearance.accent, '#abcdef');
   assert.equal(light.appearance.effect, 'liquid-glass');
   assert.equal(dark.appearance.effect, 'acrylic');
   assert.ok(getThemeVariables(preferences(custom))['--theme-background'].includes('linear-gradient(45deg, #ffffff, #112233)'));
+});
+
+test('custom surfaces follow both background endpoints, not an inherited green palette or the accent', () => {
+  const custom = createCustomTheme('blue-surfaces', 'Blue', 'barbari');
+  custom.modes.dark.background = { kind: 'gradient', color: '#101827', endColor: '#183256', angle: 135 };
+  custom.modes.dark.accent = '#0066ff';
+  const blue = getThemeVariables(preferences(custom, 'dark'));
+  assert.equal(blue['--theme-accent'], '#0066ff');
+  assert.notEqual(blue['--theme-surface'], themeRegistry.barbari.modes.dark.surface);
+  for (const key of ['--theme-surface', '--theme-surface-raised', '--theme-border', '--theme-muted']) {
+    const hex = blue[key];
+    assert.ok(parseInt(hex.slice(5, 7), 16) > parseInt(hex.slice(3, 5), 16), `${key} should follow the blue background`);
+  }
+  custom.modes.dark.accent = '#ff5500';
+  const orangeAccent = getThemeVariables(preferences(custom, 'dark'));
+  assert.equal(orangeAccent['--theme-surface'], blue['--theme-surface']);
+  assert.notEqual(orangeAccent['--theme-accent-wash'], blue['--theme-accent-wash']);
+  custom.modes.dark.background.endColor = '#701530';
+  assert.notEqual(getThemeVariables(preferences(custom, 'dark'))['--theme-surface'], blue['--theme-surface']);
+});
+
+test('custom palettes keep readable text in either mode even with extreme background choices', () => {
+  const luminosity = hex => {
+    const channels = [1, 3, 5].map(index => parseInt(hex.slice(index, index + 2), 16) / 255).map(c => c <= .04045 ? c / 12.92 : ((c + .055) / 1.055) ** 2.4);
+    return channels[0] * .2126 + channels[1] * .7152 + channels[2] * .0722;
+  };
+  for (const mode of ['light', 'dark']) for (const background of ['#ffffff', '#000000', '#00ff00', '#ff00ff', '#0000ff']) {
+    const appearance = createCustomTheme('contrast', 'Contrast', 'barbari').modes[mode];
+    appearance.background = { kind: 'solid', color: background, endColor: background, angle: 135 };
+    const palette = deriveThemePalette(appearance, mode);
+    for (const foreground of [palette.text, palette.muted]) {
+      const a = luminosity(foreground), b = luminosity(palette.surface);
+      assert.ok((Math.max(a, b) + .05) / (Math.min(a, b) + .05) >= 4.5, `${mode} ${background} text contrast`);
+    }
+  }
+});
+
+test('shared custom edits preserve every changed setting when switching light/dark and reloading', () => {
+  let custom = setCustomModeLink(createCustomTheme('linked', 'Linked', 'barbari'), 'light', true);
+  custom = updateCustomAppearance(custom, 'light', { accent: '#0066ff', animation: 'full', effect: 'liquid-glass', background: { kind: 'gradient', color: '#101827', endColor: '#183256', angle: 40 } });
+  assert.deepEqual(custom.modes.dark, custom.modes.light);
+  const saved = normalizeThemePreferences(JSON.parse(JSON.stringify(preferences(custom, 'dark'))));
+  assert.equal(saved.customThemes[0].linkModes, true);
+  for (const mode of ['light', 'dark']) {
+    assert.deepEqual(resolveTheme({ ...saved, mode }).appearance, custom.modes.light);
+  }
+  const before = JSON.stringify(custom);
+  const changed = updateCustomAppearance(custom, 'dark', { animation: 'tech' });
+  assert.equal(JSON.stringify(custom), before);
+  assert.equal(changed.modes.light.animation, 'tech');
+  assert.equal(changed.modes.dark.animation, 'tech');
+  assert.equal(changed.modes.light.accent, '#0066ff');
+  assert.deepEqual(changed.modes.light.background, custom.modes.light.background);
+});
+
+test('independent modes change only the active appearance until explicitly linked', () => {
+  let custom = setCustomModeLink(createCustomTheme('independent', 'Independent', 'hacker'), 'light', false);
+  const originalDark = JSON.stringify(custom.modes.dark);
+  custom = updateCustomAppearance(custom, 'light', { accent: '#ff5500', effect: 'acrylic' });
+  assert.equal(JSON.stringify(custom.modes.dark), originalDark);
+  assert.equal(custom.modes.light.accent, '#ff5500');
+  assert.equal(normalizeThemePreferences(preferences(custom)).customThemes[0].linkModes, false);
+  const linked = setCustomModeLink(custom, 'light', true);
+  assert.deepEqual(linked.modes.dark, linked.modes.light);
+  linked.modes.dark.background.color = '#000000';
+  assert.notEqual(linked.modes.light.background.color, '#000000');
+  assert.equal(custom.linkModes, false);
+});
+
+test('legacy saved mode appearances are preserved during shared-mode migration', () => {
+  const custom = createCustomTheme('legacy', 'Legacy', 'barbari');
+  delete custom.linkModes;
+  custom.modes.light.accent = '#ff5500'; custom.modes.dark.accent = '#0066ff';
+  const saved = normalizeThemePreferences(preferences(custom));
+  assert.equal(saved.customThemes[0].linkModes, true);
+  assert.equal(saved.customThemes[0].modes.light.accent, '#ff5500');
+  assert.equal(saved.customThemes[0].modes.dark.accent, '#0066ff');
+});
+
+test('mode switching keeps legacy shared customizations without mutating saved preferences', () => {
+  const custom = createCustomTheme('legacy-toggle', 'Legacy', 'barbari');
+  custom.modes.dark = { ...custom.modes.dark, accent: '#0066ff', effect: 'liquid-glass', animation: 'full' };
+  const saved = preferences(custom, 'dark');
+  const before = JSON.stringify(saved);
+  const light = switchThemeMode(saved, 'light');
+  assert.equal(JSON.stringify(saved), before);
+  assert.equal(light.mode, 'light');
+  assert.deepEqual(resolveTheme(light).appearance, custom.modes.dark);
+  assert.deepEqual(resolveTheme(switchThemeMode(light, 'dark')).appearance, custom.modes.dark);
+  const independent = { ...saved, customThemes: [{ ...custom, linkModes: false }] };
+  assert.deepEqual(resolveTheme(switchThemeMode(independent, 'light')).appearance, custom.modes.light);
+});
+
+test('glass opacity adapts when a shared backdrop is dark but the UI mode is light', () => {
+  const custom = setCustomModeLink(createCustomTheme('glass-contrast', 'Contrast', 'barbari'), 'dark', true);
+  const appearance = { ...custom.modes.dark, background: { kind: 'gradient', color: '#101827', endColor: '#183256', angle: 135 }, accent: '#0066ff', effect: 'liquid-glass' };
+  custom.modes = { light: appearance, dark: appearance };
+  const light = getThemeVariables(preferences(custom, 'light'));
+  const dark = getThemeVariables(preferences(custom, 'dark'));
+  assert.ok(parseInt(light['--theme-glass-opacity']) > parseInt(dark['--theme-glass-opacity']));
+  for (const variables of [light, dark]) for (const key of ['--theme-glass-opacity', '--theme-acrylic-opacity']) {
+    assert.match(variables[key], /^\d+%$/);
+    assert.ok(parseInt(variables[key]) <= 100);
+  }
+});
+
+test('shared and independent appearance updates enforce mini restrictions', () => {
+  for (const linked of [true, false]) {
+    const custom = setCustomModeLink(createCustomTheme('mini-edit', 'Mini', 'mini'), 'light', linked);
+    const updated = updateCustomAppearance(custom, 'light', { effect: 'liquid-glass', animation: 'full', accent: '#0066ff' });
+    for (const mode of ['light', 'dark']) { assert.equal(updated.modes[mode].effect, 'none'); assert.equal(updated.modes[mode].animation, 'none'); }
+  }
 });
 
 test('missing mode definitions inherit the correct parent defaults', () => {
