@@ -1,0 +1,21 @@
+:root {
+  font-family: 'Vazirmatn', Tahoma, sans-serif;
+  color: #25322f;
+  background: #f5f6f3;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  --ink: #25322f;
+  --muted: #85918d;
+  --line: #e7eae5;
+  --paper: #fff;
+  --canvas: #f5f6f3;
+  --green: #517365;
+  --green-dark: #39594c;
+  --green-wash: #eaf0ec;
+  --sand: #b08b6a;
+  --radius-sm: 10px;
+  --radius-md: 16px;
+  --radius-lg: 22px;
+  --shadow-soft: 0 16px 50px rgba(50, 67, 59, .055);
+  --focus: 0 0 0 3px rgba(81, 115, 101, .22);
+}

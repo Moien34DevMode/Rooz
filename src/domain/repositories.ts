@@ -1,0 +1,8 @@
+import type { DayNote, Goal, GoalInput, Preferences, ScheduleItem, ScheduleInput, ShortTermTask, ShortTermTaskInput, Task, TaskInput } from './models';
+
+export interface TaskRepository { getByDate(date: string): Promise<Task[]>; getBetween(start: string, end: string): Promise<Task[]>; getAll(): Promise<Task[]>; getById(id: string): Promise<Task | undefined>; create(input: TaskInput): Promise<Task>; update(id: string, changes: Partial<TaskInput>): Promise<Task>; delete(id: string): Promise<void> }
+export interface ScheduleRepository { getByDate(date: string): Promise<ScheduleItem[]>; getBetween(start: string, end: string): Promise<ScheduleItem[]>; getAll(): Promise<ScheduleItem[]>; create(input: ScheduleInput): Promise<ScheduleItem>; update(id: string, changes: Partial<ScheduleInput>): Promise<ScheduleItem>; delete(id: string): Promise<void> }
+export interface NoteRepository { getByDate(date: string): Promise<DayNote | undefined>; getBetween(start: string, end: string): Promise<DayNote[]>; save(date: string, content: string): Promise<DayNote> }
+export interface PreferencesRepository { get(): Promise<Preferences>; save(value: Preferences): Promise<void> }
+export interface GoalRepository { getAll(): Promise<Goal[]>; getById(id: string): Promise<Goal | undefined>; create(input: GoalInput): Promise<Goal>; update(id: string, changes: Partial<GoalInput>): Promise<Goal>; delete(id: string): Promise<void> }
+export interface ShortTermTaskRepository { getAll(): Promise<ShortTermTask[]>; getById(id: string): Promise<ShortTermTask | undefined>; create(input: ShortTermTaskInput): Promise<ShortTermTask>; update(id: string, changes: Partial<ShortTermTaskInput>): Promise<ShortTermTask>; delete(id: string): Promise<void> }
