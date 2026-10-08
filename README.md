@@ -16,6 +16,12 @@ npm run build
 npm run preview
 ```
 
+## انتشار در GitHub Pages
+
+در تنظیمات مخزن، از مسیر **Settings → Pages → Build and deployment**، گزینه‌ی **Source** را روی **GitHub Actions** قرار دهید. workflow موجود در `.github/workflows/jekyll-gh-pages.yml` با هر push به شاخه‌ی `main` وابستگی‌ها را با `npm ci` نصب می‌کند، `npm run build` را اجرا می‌کند و فقط پوشه‌ی `dist` را منتشر می‌کند؛ Jekyll برای این برنامه استفاده نمی‌شود.
+
+مسیر منابع در `vite.config.ts` نسبی (`base: './'`) است تا برنامه هم در مسیر مخزن مانند `/Rooz/` و هم در ریشه‌ی دامنه اجرا شود. فایل `index.html` اصلی و پوشه‌ی `src` خروجی قابل انتشار نیستند؛ GitHub Pages فایل‌های TypeScript و React را کامپایل نمی‌کند. نیازی به commit کردن `dist` نیست.
+
 ## معماری
 
 - `src/domain/` مدل‌های مستقل از رابط کاربری برای هدف‌ها، کارهای کوتاه‌مدت، یادداشت‌ها و قرارداد repositoryها را نگه می‌دارد.
