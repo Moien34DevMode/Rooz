@@ -1,5 +1,6 @@
 import { useEffect, useId, useRef, useState } from 'react';
-import { CalendarDays, HardDrive, Palette, Plus, Trash2, X } from 'lucide-react';
+import { CalendarDays, Download, HardDrive, Palette, Plus, Trash2, Upload, X } from 'lucide-react';
+import { parsePlannerBackup, type PlannerBackup } from '../storage/plannerBackup';
 import type { CalendarSystem } from '../domain/models';
 import { CalendarSwitch } from './CalendarSwitch';
 import { SelectField } from './SelectField';
@@ -23,6 +24,8 @@ export interface SettingsDialogProps {
   theme: ThemePreferences;
   onThemeChange: (value: ThemePreferences) => Promise<void>;
   onClearMemory: () => Promise<void>;
+  onExportData: () => Promise<void>;
+  onImportData: (backup: PlannerBackup) => Promise<ThemePreferences>;
 }
 const animationLabels: Record<ThemeAnimation, string> = { none: 'بدون حرکت', subtle: 'ملایم', full: 'کامل', tech: 'فنی' };
 const effectLabels: Record<ThemeEffect, string> = { none: 'بدون افکت', acrylic: 'اکریلیک', 'liquid-glass': 'شیشه‌ی مایع' };
@@ -43,7 +46,7 @@ export function SettingsDialog(props: SettingsDialogProps) {
   return props.open ? <SettingsContent {...props}/> : null;
 }
 
-function SettingsContent({ calendar, onCalendarChange, onClose, theme, onThemeChange, onClearMemory }: SettingsDialogProps) {
+function SettingsContent({ calendar, onCalendarChange, onClose, theme, onThemeChange, onClearMemory, onExportData, onImportData }: SettingsDialogProps) {
   const id = useId();
   const dialog = useRef<HTMLElement>(null);
   const saved = useRef(normalizeThemePreferences(theme));
@@ -52,6 +55,9 @@ function SettingsContent({ calendar, onCalendarChange, onClose, theme, onThemeCh
   const [expandedColor, setExpandedColor] = useState<string | null>(null);
   const beforeEdit = useRef<ThemePreferences | null>(null);
   const [confirmClear, setConfirmClear] = useState(false);
+  const [pendingBackup, setPendingBackup] = useState<{ backup: PlannerBackup; name: string } | null>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
+  const confirming = confirmClear || !!pendingBackup;
   const [busy, setBusy] = useState(false);
   const lock = useRef(false);
   const mounted = useRef(true);
@@ -95,7 +101,7 @@ function SettingsContent({ calendar, onCalendarChange, onClose, theme, onThemeCh
       dialog.current?.querySelector<HTMLButtonElement>('.theme-color-toggle[aria-expanded="true"]')?.focus();
       setExpandedColor(null);
     } else cancel();
-  }, confirmClear);
+  }, confirming);
 
   async function run(action: () => Promise<void>) {
     if (lock.current) return;
@@ -160,6 +166,22 @@ function SettingsContent({ calendar, onCalendarChange, onClose, theme, onThemeCh
       if (mounted.current) { applyTheme(saved.current); onClose(); }
     });
   }
+  async function selectBackup(file: File) {
+    await run(async () => {
+      let backup: PlannerBackup;
+      try { backup = parsePlannerBackup(await file.text()); }
+      catch { throw new Error('فایل پشتیبان معتبر نیست یا نسخه‌ی آن پشتیبانی نمی‌شود. اطلاعات فعلی تغییر نکرده‌اند.'); }
+      if (mounted.current) setPendingBackup({ backup, name: file.name });
+    });
+  }
+  async function restoreBackup() {
+    if (!pendingBackup) return;
+    await run(async () => {
+      const restoredTheme = await onImportData(pendingBackup.backup);
+      saved.current = normalizeThemePreferences(restoredTheme);
+      if (mounted.current) { applyTheme(saved.current); onClose(); }
+    });
+  }
   const appearance = editing?.modes[draft.mode];
   const mini = editing?.parentId === 'mini';
   const previewTheme = resolveTheme({ ...draft, customThemes: draft.customThemes.map(custom => ({ ...custom, name: custom.name.trim() || 'تم شخصی' })) });
@@ -174,8 +196,8 @@ function SettingsContent({ calendar, onCalendarChange, onClose, theme, onThemeCh
     { label: 'هشدار', value: palette.danger, token: '--theme-danger' }
   ];
 
-  return <div className="modal-backdrop theme-settings-backdrop" onMouseDown={event => { if (event.target === event.currentTarget && !confirmClear) cancel(); }}>
-    <section ref={dialog} className="settings-dialog theme-settings-dialog" role="dialog" aria-modal={confirmClear ? undefined : true} aria-hidden={confirmClear || undefined} aria-labelledby={`${id}-title`} aria-describedby={`${id}-description`} aria-busy={busy} tabIndex={-1} dir="rtl">
+  return <div className="modal-backdrop theme-settings-backdrop" onMouseDown={event => { if (event.target === event.currentTarget && !confirming) cancel(); }}>
+    <section ref={dialog} className="settings-dialog theme-settings-dialog" role="dialog" aria-modal={confirming ? undefined : true} aria-hidden={confirming || undefined} aria-labelledby={`${id}-title`} aria-describedby={`${id}-description`} aria-busy={busy} tabIndex={-1} dir="rtl">
       <header className="settings-header">
         <div className="dialog-top"><div><span className="eyebrow">شخصی‌سازی روز</span><h2 id={`${id}-title`}>{editing ? 'ویرایش تم شخصی' : 'تنظیمات'}</h2></div><button type="button" className="icon-button" aria-label="بستن تنظیمات و لغو تغییرات تم" disabled={busy} onClick={cancel}><X size={18}/></button></div>
         <div className="settings-header-details">
@@ -257,16 +279,31 @@ function SettingsContent({ calendar, onCalendarChange, onClose, theme, onThemeCh
             </aside>
           </div>}
         </section>
-        {!editing && <section className="theme-settings-section theme-storage-section"><div className="setting-row"><span className="setting-icon"><HardDrive size={17}/></span><div className="setting-copy"><strong>حافظه‌ی محلی</strong><small>اطلاعات فقط در همین مرورگر و دستگاه نگهداری می‌شود.</small></div></div><p className="theme-help">پاک‌کردن حافظه، همه‌ی هدف‌ها، کارها، بازه‌ها، یادداشت‌ها، تنظیمات و تم‌های شخصی را برای همیشه حذف می‌کند.</p><button type="button" className="button theme-danger" onClick={() => { setError(''); setConfirmClear(true); }}><Trash2 size={15}/>پاک‌کردن تمام حافظه</button></section>}
+        {!editing && <section className="theme-settings-section theme-storage-section"><div className="setting-row"><span className="setting-icon"><HardDrive size={17}/></span><div className="setting-copy"><strong>حافظه‌ی محلی</strong><small>اطلاعات فقط در همین مرورگر و دستگاه نگهداری می‌شود.</small></div></div><p className="theme-help">نسخه‌ی پشتیبان شامل همه‌ی هدف‌ها، کارها، روتین‌ها و وضعیت انجام، بازه‌ها، یادداشت‌های همه‌ی روزها، تنظیمات تقویم و تم‌های شخصی است. فقط تنظیمات ذخیره‌شده صادر می‌شوند؛ تغییرات ذخیره‌نشده‌ی تم را ابتدا ذخیره کنید. فایل رمزگذاری نمی‌شود؛ آن را در جای امن نگه دارید.</p><div className="theme-tools"><button type="button" className="button secondary" onClick={() => { void run(onExportData); }}><Download size={15}/>دریافت فایل پشتیبان</button><button type="button" className="button secondary" onClick={() => fileInput.current?.click()}><Upload size={15}/>بازیابی از فایل</button></div><input ref={fileInput} type="file" accept=".json,application/json" hidden aria-label="انتخاب فایل پشتیبان" onChange={event => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; if (file) void selectBackup(file); }}/><p className="theme-help">پاک‌کردن حافظه، همه‌ی هدف‌ها، کارها، بازه‌ها، یادداشت‌ها، تنظیمات و تم‌های شخصی را برای همیشه حذف می‌کند.</p><button type="button" className="button theme-danger" onClick={() => { setError(''); setConfirmClear(true); }}><Trash2 size={15}/>پاک‌کردن تمام حافظه</button></section>}
       </fieldset>
       </div>
       <footer className="settings-footer">
-        {error && !confirmClear && <p className="theme-error" role="alert">{error}</p>}
+        {error && !confirming && <p className="theme-error" role="alert">{error}</p>}
         <div className="dialog-actions"><button type="button" className="button primary" disabled={busy} onClick={() => { void save(); }}>{busy ? 'در حال انجام…' : 'ذخیره‌ی تم و بستن'}</button><button type="button" className="button secondary" disabled={busy} onClick={editing ? cancelEditor : cancel}>{editing ? 'لغو ویرایش و بازگشت به تم‌ها' : 'بستن بدون ذخیره'}</button></div>
       </footer>
     </section>
+    {pendingBackup && <ImportConfirmation name={pendingBackup.name} backup={pendingBackup.backup} busy={busy} error={error} onCancel={() => { if (!lock.current) { setPendingBackup(null); setError(''); } }} onConfirm={() => { void restoreBackup(); }}/>}
     {confirmClear && <ClearConfirmation busy={busy} error={error} onCancel={() => { if (!lock.current) { setConfirmClear(false); setError(''); } }} onConfirm={() => { void clearMemory(); }}/>}
   </div>;
+}
+
+function ImportConfirmation({ name, backup, busy, error, onCancel, onConfirm }: { name: string; backup: PlannerBackup; busy: boolean; error: string; onCancel: () => void; onConfirm: () => void }) {
+  const dialog = useRef<HTMLElement>(null);
+  const id = useId();
+  useDialogFocus(dialog, onCancel);
+  const counts = [['هدف', backup.data.goals.length], ['کار و روتین', backup.data.tasks.length + backup.data.shortTasks.length], ['بازه', backup.data.schedule.length], ['یادداشت', backup.data.notes.length]] as const;
+  return <div className="theme-confirm-backdrop" onMouseDown={event => { if (event.target === event.currentTarget && !busy) onCancel(); }}><section ref={dialog} className="theme-confirm-dialog" role="alertdialog" aria-modal="true" aria-labelledby={`${id}-title`} aria-describedby={`${id}-warning`} aria-busy={busy} tabIndex={-1} dir="rtl">
+    <h2 id={`${id}-title`}>اطلاعات فایل جایگزین شوند؟</h2>
+    <p className="theme-help">{name} — {counts.map(([label, count]) => `${new Intl.NumberFormat('fa-IR').format(count)} ${label}`).join('، ')}</p>
+    <p id={`${id}-warning`}>همه‌ی اطلاعات فعلی، تنظیمات و تم‌ها با محتوای این فایل جایگزین می‌شوند؛ اطلاعات ادغام نمی‌شوند. تغییرات ذخیره‌نشده‌ی تم نیز کنار گذاشته می‌شوند. ابتدا از اطلاعات فعلی فایل پشتیبان بگیرید.</p>
+    {error && <p className="theme-error" role="alert">{error}</p>}
+    <div className="theme-tools"><button type="button" className="button secondary" data-autofocus disabled={busy} onClick={onCancel}>لغو، نگه‌داشتن اطلاعات فعلی</button><button type="button" className="button theme-danger" disabled={busy} onClick={onConfirm}>{busy ? 'در حال بازیابی…' : 'بازیابی و جایگزینی همه‌ی اطلاعات'}</button></div>
+  </section></div>;
 }
 
 function ClearConfirmation({ busy, error, onCancel, onConfirm }: { busy: boolean; error: string; onCancel: () => void; onConfirm: () => void }) {

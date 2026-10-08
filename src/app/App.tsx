@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ArrowUpRight, CalendarDays, ChevronLeft, ChevronRight, Clock3, ListTodo, Settings2, Sparkles, StickyNote } from 'lucide-react';
 import type { CalendarSystem, Goal, GoalInput, ScheduleEntry, ScheduleItem, ShortTermTask, ShortTermTaskInput, Task, TaskEntry } from '../domain/models';
 import { planner } from '../services/container';
+import type { PlannerBackup } from '../storage/plannerBackup';
 import { calendarMonthKey, calendarParts, formatDate, getMonthDays, shiftDate, shiftMonth, shiftYear, todayKey } from '../features/calendar/calendar';
 import { ClockPlanner } from '../features/daily-view/ClockPlanner';
 import { DoTaskDialog } from '../features/tasks/DoTaskDialog';
@@ -34,6 +35,7 @@ export function App({ onReady }: { onReady?: () => void }) {
     const [preferencesReady, setPreferencesReady] = useState(false);
     const [loadError, setLoadError] = useState('');
     const loadVersion = useRef(0);
+    const [restoreVersion, setRestoreVersion] = useState(0);
     const noteTimer = useRef<ReturnType<typeof setTimeout>>();
     const resetting = useRef(false);
     useTheme(theme);
@@ -77,7 +79,7 @@ export function App({ onReady }: { onReady?: () => void }) {
     } catch (error) {
       if (version === loadVersion.current) { console.error(error); setLoadError('دریافت اطلاعات با مشکل روبه‌رو شد. اطلاعات قبلی پاک نشده‌اند.'); }
     } finally { if (version === loadVersion.current) setLoading(false); }
-  }, [date, datesToLoad, preferencesReady]);
+  }, [date, datesToLoad, preferencesReady, restoreVersion]);
 
   useEffect(() => { void load(); return () => { loadVersion.current++; }; }, [load]);
   useEffect(() => {
@@ -104,6 +106,46 @@ export function App({ onReady }: { onReady?: () => void }) {
       const next = normalizeThemePreferences(value);
       await planner.savePreferences({ calendar, theme: next });
       setTheme(next);
+    }
+    async function exportData() {
+      clearTimeout(noteTimer.current);
+      if (!noteSaved && noteForDate === date) {
+        await planner.saveNote(date, note);
+        setNoteSaved(true);
+      }
+      const backup = await planner.exportData();
+      const url = URL.createObjectURL(new Blob([JSON.stringify(backup, null, 2)], { type: 'application/json' }));
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `rooz-backup-${backup.exportedAt.replace(/[:.]/g, '-')}.json`;
+      document.body.appendChild(link);
+      try { link.click(); }
+      finally { link.remove(); window.setTimeout(() => URL.revokeObjectURL(url), 1000); }
+      setToast('فایل پشتیبان آماده شد');
+    }
+    async function importData(backup: PlannerBackup): Promise<ThemePreferences> {
+      const preferences = backup.data.preferences.find(item => item.id === 'app')?.value ?? { calendar: 'persian' as const };
+      const restoredTheme = normalizeThemePreferences(preferences.theme);
+      resetting.current = true;
+      clearTimeout(noteTimer.current);
+      loadVersion.current++;
+      try {
+        await planner.importData(backup);
+        setTasks([]); setSchedule([]); setGoals([]); setShortTasks([]);
+        setNote(''); setNoteForDate(''); setNoteSaved(true);
+        setTheme(restoredTheme); setCalendar(preferences.calendar);
+        setDoDialog(false); setManagerOpen(false); setEditingItem(undefined);
+        setLoading(true); setLoadError(''); setPreferencesReady(true);
+        setRestoreVersion(value => value + 1);
+        setToast('تمام اطلاعات و تنظیمات از فایل بازیابی شد');
+        return restoredTheme;
+      } catch (error) {
+        // Restart the note debounce if replacement failed and the old data remains.
+        if (!noteSaved && noteForDate === date) {
+          noteTimer.current = setTimeout(() => planner.saveNote(date, note).then(() => setNoteSaved(true)).catch(() => setToast('ذخیره‌ی یادداشت انجام نشد.')), 450);
+        }
+        throw error;
+      } finally { resetting.current = false; }
     }
     async function clearMemory() {
       resetting.current = true;
@@ -177,7 +219,7 @@ export function App({ onReady }: { onReady?: () => void }) {
     <footer className="app-footer"><span>{dailyMessages.footer}</span><span>روز <i>·</i> فضای شخصی تو</span></footer>
     <DoTaskDialog key={editingItem?.id ?? 'new-task'} open={doDialog} calendar={calendar} goals={goals} editing={editingItem} onClose={() => { setDoDialog(false); setEditingItem(undefined); }} onSaveGoal={saveGoal} onSaveShortTask={saveShortTask} onUpdateGoal={updateGoal} onUpdateShortTask={updateShortTask}/>
     <TaskManagerDialog open={managerOpen} goals={goals} shortTasks={shortTasks} calendar={calendar} getProgress={progressFor} onClose={() => setManagerOpen(false)} onEdit={item => { setManagerOpen(false); setEditingItem(item); setDoDialog(true); }} onDelete={deleteManagedItem}/>
-    <SettingsDialog open={settingsOpen} calendar={calendar} theme={theme} onThemeChange={changeTheme} onClearMemory={clearMemory} onCalendarChange={changeCalendar} onClose={() => setSettingsOpen(false)}/>
+    <SettingsDialog open={settingsOpen} calendar={calendar} theme={theme} onThemeChange={changeTheme} onClearMemory={clearMemory} onExportData={exportData} onImportData={importData} onCalendarChange={changeCalendar} onClose={() => setSettingsOpen(false)}/>
     {toast && <div className="toast" role="status">{toast}</div>}
   </main>;
 }

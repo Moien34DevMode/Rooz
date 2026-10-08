@@ -1,10 +1,24 @@
 import type { NoteRepository, PreferencesRepository, ScheduleRepository, TaskRepository } from '../domain/repositories';
 import type { GoalInput, Preferences, ScheduleInput, ShortTermTaskInput, TaskInput } from '../domain/models';
 import type { GoalRepository, ShortTermTaskRepository } from '../domain/repositories';
+import type { PlannerBackup } from '../storage/plannerBackup';
+
+interface BackupStorage {
+  exportData: () => Promise<PlannerBackup>;
+  importData: (backup: PlannerBackup) => Promise<void>;
+}
 
 export class PlannerService {
-  constructor(private tasks: TaskRepository, private schedule: ScheduleRepository, private notes: NoteRepository, private preferences: PreferencesRepository, private goals: GoalRepository, private shortTasks: ShortTermTaskRepository, private resetStorage: () => Promise<void>) {}
+  constructor(private tasks: TaskRepository, private schedule: ScheduleRepository, private notes: NoteRepository, private preferences: PreferencesRepository, private goals: GoalRepository, private shortTasks: ShortTermTaskRepository, private resetStorage: () => Promise<void>, private backupStorage?: BackupStorage) {}
   clearMemory() { return this.resetStorage(); }
+  async exportData() {
+    if (!this.backupStorage) throw new Error('Backup storage is unavailable');
+    return this.backupStorage.exportData();
+  }
+  async importData(backup: PlannerBackup) {
+    if (!this.backupStorage) throw new Error('Backup storage is unavailable');
+    await this.backupStorage.importData(backup);
+  }
   getTasks(date: string) { return this.tasks.getByDate(date); }
   getTasksBetween(start: string, end: string) { return this.tasks.getBetween(start, end); }
   getAllTasks() { return this.tasks.getAll(); }

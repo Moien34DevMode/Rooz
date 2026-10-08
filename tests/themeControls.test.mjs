@@ -117,10 +117,13 @@ test('invalid and disabled color fields expose their state in SSR', () => {
 
 test('settings SSR preserves its dialog contract and does not persist or show native color/select inputs', () => {
   const custom = createCustomTheme('controls-custom', 'شخصی', 'hacker');
-  const props = { open: true, calendar: 'persian', theme: { activeThemeId: custom.id, mode: 'dark', customThemes: [custom] }, onClose: () => assert.fail(), onCalendarChange: () => assert.fail(), onThemeChange: () => assert.fail(), onClearMemory: () => assert.fail() };
+  const props = { open: true, calendar: 'persian', theme: { activeThemeId: custom.id, mode: 'dark', customThemes: [custom] }, onClose: () => assert.fail(), onCalendarChange: () => assert.fail(), onThemeChange: () => assert.fail(), onClearMemory: () => assert.fail(), onExportData: () => assert.fail(), onImportData: () => assert.fail() };
   const markup = renderToStaticMarkup(createElement(SettingsDialog, props));
   assert.match(markup, /role="dialog" aria-modal="true"/);
   assert.match(markup, /ویرایش تم/);
+  assert.match(markup, /دریافت فایل پشتیبان/);
+  assert.match(markup, /بازیابی از فایل/);
+  assert.match(markup, /type="file" accept="\.json,application\/json" hidden="" aria-label="انتخاب فایل پشتیبان"/);
   assert.doesNotMatch(markup, /type="color"|<select/);
   assert.equal(renderToStaticMarkup(createElement(SettingsDialog, { ...props, open: false })), '');
 });
