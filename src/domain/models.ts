@@ -53,8 +53,10 @@ export interface ScheduleItem {
   id: string; title: string; date: string; startTime: string; endTime: string;
   color: string; createdAt: string; updatedAt: string;
 }
-export interface ScheduleEntry extends ScheduleItem { shortTaskId?: string; completed?: boolean }
+export interface ScheduleEntry extends ScheduleItem {
+  shortTaskId?: string; completed?: boolean; sourceId?: string; occurrenceDate?: string;
+}
 export interface DayNote { date: string; content: string; updatedAt: string }
-export interface Preferences { calendar: CalendarSystem; sampleDataInitialized?: boolean }
+export interface Preferences { calendar: CalendarSystem }
 export type TaskInput = Omit<Task, 'id' | 'createdAt' | 'updatedAt'>;
 export type ScheduleInput = Omit<ScheduleItem, 'id' | 'createdAt' | 'updatedAt'>;

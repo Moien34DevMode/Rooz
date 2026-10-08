@@ -1,4 +1,5 @@
 import type { CalendarSystem } from '../domain/models';
+import { SelectField } from './SelectField';
 import { calendarMonthKey, calendarParts, formatDate, getMonthDays, todayKey } from '../features/calendar/calendar';
 
 export function CalendarDateField({ value, calendar, onChange, allowEmpty = true }: {
@@ -16,15 +17,15 @@ export function CalendarDateField({ value, calendar, onChange, allowEmpty = true
 
   if (!value && allowEmpty) return <button type="button" className="date-select-trigger" onClick={() => onChange(todayKey())}>انتخاب تاریخ</button>;
   return <div className="calendar-date-field" dir="rtl">
-    <select aria-label="روز" value={parts.day} onChange={event => onChange(dateFor(parts.year, parts.month, Number(event.target.value)))}>
+    <SelectField aria-label="روز" value={parts.day} onValueChange={value => onChange(dateFor(parts.year, parts.month, Number(value)))}>
       {month.dates.map((_, index) => <option key={index + 1} value={index + 1}>{new Intl.NumberFormat(calendar === 'persian' ? 'fa-IR' : 'en').format(index + 1)}</option>)}
-    </select>
-    <select aria-label="ماه" value={parts.month} onChange={event => onChange(dateFor(parts.year, Number(event.target.value), parts.day))}>
+    </SelectField>
+    <SelectField aria-label="ماه" value={parts.month} onValueChange={value => onChange(dateFor(parts.year, Number(value), parts.day))}>
       {monthOptions.map(monthNumber => { const monthKey = calendarMonthKey(parts.year, monthNumber, calendar); return <option key={monthNumber} value={monthNumber}>{formatDate(monthKey, calendar, { month: 'long' })}</option>; })}
-    </select>
-    <select aria-label="سال" value={parts.year} onChange={event => onChange(dateFor(Number(event.target.value), parts.month, parts.day))}>
+    </SelectField>
+    <SelectField aria-label="سال" value={parts.year} onValueChange={value => onChange(dateFor(Number(value), parts.month, parts.day))}>
       {yearOptions.map(year => <option key={year} value={year}>{new Intl.NumberFormat(calendar === 'persian' ? 'fa-IR' : 'en').format(year)}</option>)}
-    </select>
+    </SelectField>
     {allowEmpty && <button type="button" className="date-clear" aria-label="پاک کردن تاریخ" onClick={() => onChange('')}>×</button>}
   </div>;
 }

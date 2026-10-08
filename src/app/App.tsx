@@ -13,19 +13,7 @@ import { SettingsDialog } from '../components/SettingsDialog';
 
 type View = 'daily' | 'weekly' | 'monthly' | 'yearly';
 function BattleHelmetIcon() { return <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M5 17.2a11 11 0 0 1 22 0v2.1h-3.4v5.1H11.2l-2.1-3.2H5v-4Z"/><path d="M10.2 18.1H27M13.2 8.5l2.2 5.2m5.5-5.2-2.1 5.2M9 21.3h3.1"/></svg>; }
-const sampleTasks = [
-  { title: 'بررسی ایمیل‌ها', startTime: '08:30', endTime: '09:00', color: '#8193aa' },
-  { title: 'تماس با علی', startTime: '10:15', endTime: '10:30', color: '#c38b61' },
-  { title: 'مطالعه', startTime: '14:30', endTime: '15:30', color: '#a17b61' },
-  { title: 'مرور برنامه‌ی فردا', kind: 'todo' as const, color: '#6b8f82' },
-  { title: 'خرید حوله', kind: 'todo' as const, color: '#9b83a6' },
-  { title: 'تماس با تعمیرکار', kind: 'todo' as const, color: '#c38b61' }
-];
-const sampleSchedule = [
-  { title: 'شروع آرام روز', startTime: '07:00', endTime: '08:00', color: '#7fa491' },
-  { title: 'کلاس زبان', startTime: '13:30', endTime: '15:00', color: '#bd8b68' },
-  { title: 'ورزش', startTime: '18:00', endTime: '19:15', color: '#8c81a6' }
-];
+
 const viewLabels: Record<View, string> = { daily: 'روزانه', weekly: 'هفتگی', monthly: 'ماهانه', yearly: 'سالانه' };
 
 export function App() {
@@ -33,7 +21,7 @@ export function App() {
   const [calendar, setCalendar] = useState<CalendarSystem>('persian'); const [tasks, setTasks] = useState<Task[]>([]); const [schedule, setSchedule] = useState<ScheduleItem[]>([]); const [goals, setGoals] = useState<Goal[]>([]); const [shortTasks, setShortTasks] = useState<ShortTermTask[]>([]);
   const [note, setNote] = useState(''); const [noteForDate, setNoteForDate] = useState(''); const [noteSaved, setNoteSaved] = useState(true); const [, setClockTick] = useState(0);
   const [doDialog, setDoDialog] = useState(false); const [managerOpen, setManagerOpen] = useState(false); const [editingItem, setEditingItem] = useState<Goal | ShortTermTask>(); const [settingsOpen, setSettingsOpen] = useState(false);
-  const [loading, setLoading] = useState(true); const [ready, setReady] = useState(false); const [toast, setToast] = useState('');
+  const [loading, setLoading] = useState(true); const [toast, setToast] = useState('');
 
   const datesToLoad = useMemo(() => {
     if (view === 'weekly') { const offset = (new Date(`${date}T12:00:00`).getDay() + 1) % 7; return Array.from({ length: 7 }, (_, i) => shiftDate(date, i - offset)); }
@@ -48,7 +36,7 @@ export function App() {
       const pref = await planner.getPreferences(); setCalendar(pref.calendar);
       const [loadedTasks, loadedSchedule, loadedGoals, loadedShortTasks] = await Promise.all([
         datesToLoad.length > 1 ? planner.getTasksBetween(datesToLoad[0], datesToLoad[datesToLoad.length - 1]) : planner.getTasks(datesToLoad[0]),
-        datesToLoad.length > 1 ? planner.getScheduleBetween(datesToLoad[0], datesToLoad[datesToLoad.length - 1]) : planner.getSchedule(datesToLoad[0]),
+        planner.getScheduleBetween(shiftDate(datesToLoad[0], -1), datesToLoad[datesToLoad.length - 1]),
         planner.getGoals(), planner.getShortTermTasks()
       ]);
       setTasks(loadedTasks); setSchedule(loadedSchedule); setGoals(loadedGoals); setShortTasks(loadedShortTasks);
@@ -57,8 +45,7 @@ export function App() {
     finally { setLoading(false); }
   }, [date, datesToLoad, view]);
 
-  useEffect(() => { let alive = true; (async () => { try { const preferences = await planner.getPreferences(); if (!preferences.sampleDataInitialized) { const [allTasks, allBlocks] = await Promise.all([planner.getAllTasks(), planner.getAllSchedule()]); if (!allTasks.length && !allBlocks.length) { for (const item of sampleTasks) await planner.createTask({ ...item, date: todayKey(), kind: item.kind ?? 'timed', status: 'open' }); for (const item of sampleSchedule) await planner.createSchedule({ ...item, date: todayKey() }); } await planner.savePreferences({ calendar: preferences.calendar, sampleDataInitialized: true }); } } catch (e) { console.error(e); } if (alive) setReady(true); })(); return () => { alive = false; }; }, []);
-  useEffect(() => { if (ready) void load(); }, [load, ready]);
+  useEffect(() => { void load(); }, [load]);
   useEffect(() => { const id = window.setInterval(() => setClockTick(value => value + 1), 1000); return () => clearInterval(id); }, []);
   useEffect(() => { if (!toast) return; const id = setTimeout(() => setToast(''), 2600); return () => clearTimeout(id); }, [toast]);
   useEffect(() => { if (loading || noteForDate !== date) return; const id = setTimeout(() => planner.saveNote(date, note).then(() => setNoteSaved(true)).catch(() => setToast('ذخیره‌ی یادداشت انجام نشد.')), 450); return () => clearTimeout(id); }, [note, date, loading, noteForDate]);
@@ -80,13 +67,14 @@ export function App() {
     if (!item.shortTaskId) return;
     const task = shortTasks.find(candidate => candidate.id === item.shortTaskId);
     if (!task) return;
-    const completedDates = task.completedDates.includes(item.date) ? task.completedDates.filter(day => day !== item.date) : [...task.completedDates, item.date];
+    const occurrenceDate = item.occurrenceDate ?? item.date;
+        const completedDates = task.completedDates.includes(occurrenceDate) ? task.completedDates.filter(day => day !== occurrenceDate) : [...task.completedDates, occurrenceDate];
     await planner.updateShortTermTask(task.id, { completedDates });
     await load();
   }
   async function removeScheduleEntry(item: ScheduleEntry) {
     if (item.shortTaskId) await planner.deleteShortTermTask(item.shortTaskId);
-    else await planner.deleteSchedule(item.id);
+    else await planner.deleteSchedule(item.sourceId ?? item.id);
     await load(); setToast('بازه حذف شد');
   }
   async function removeTask(entry: TaskEntry) {

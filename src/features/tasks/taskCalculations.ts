@@ -1,5 +1,5 @@
 import type { CalendarSystem, Goal, MidTermGoal, ScheduleEntry, ScheduleItem, ShortTermTask, Task, TaskEntry } from '../../domain/models';
-import { calendarParts } from '../calendar/calendar';
+import { calendarParts, shiftDate } from '../calendar/calendar';
 
 function routineOccurs(task: ShortTermTask, date: string, calendar: CalendarSystem) {
   const routine = task.routine;
@@ -32,12 +32,30 @@ export function taskEntriesForDate(legacyTasks: Task[], shortTasks: ShortTermTas
 }
 
 export function scheduleEntriesForDate(legacyItems: ScheduleItem[], shortTasks: ShortTermTask[], date: string, calendar: CalendarSystem): ScheduleEntry[] {
-  const routines = shortTasks.filter(task => task.mode === 'routine' && task.routine?.isTimed && routineOccurs(task, date, calendar));
-  return [...legacyItems.filter(item => item.date === date), ...routines.map(task => ({
-    id: `routine:${task.id}:${date}`, shortTaskId: task.id, completed: task.completedDates.includes(date), title: task.title, date,
-    startTime: task.routine!.startTime!, endTime: task.routine!.endTime!, color: task.color,
-    createdAt: task.createdAt, updatedAt: task.updatedAt
-  }))];
+  const previousDate = shiftDate(date, -1);
+  const occurrences: ScheduleEntry[] = legacyItems
+    .filter(item => item.date === date || item.date === previousDate)
+    .map(item => ({ ...item, sourceId: item.id, occurrenceDate: item.date }));
+  for (const task of shortTasks) {
+    const routine = task.routine;
+    if (task.mode !== 'routine' || !routine?.isTimed || !routine.startTime || !routine.endTime) continue;
+    for (const occurrenceDate of [previousDate, date]) {
+      if (!routineOccurs(task, occurrenceDate, calendar)) continue;
+      occurrences.push({
+        id: `routine:${task.id}:${occurrenceDate}`, shortTaskId: task.id,
+        completed: task.completedDates.includes(occurrenceDate), occurrenceDate,
+        title: task.title, date: occurrenceDate, startTime: routine.startTime, endTime: routine.endTime,
+        color: task.color, createdAt: task.createdAt, updatedAt: task.updatedAt
+      });
+    }
+  }
+  return occurrences.flatMap(item => {
+    const overnight = item.endTime < item.startTime;
+    if (item.date === date) return [{ ...item, endTime: overnight ? '24:00' : item.endTime }];
+    // The continuation belongs to yesterday's occurrence, even on non-recurring days.
+    if (overnight && item.endTime !== '00:00') return [{ ...item, id: `${item.id}:continuation`, date, startTime: '00:00' }];
+    return [];
+  });
 }
 
 function shortTaskProgress(task: ShortTermTask, throughDate: string, calendar: CalendarSystem) {

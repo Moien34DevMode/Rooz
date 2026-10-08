@@ -27,7 +27,7 @@ export class LocalNoteRepository implements NoteRepository {
   async save(date: string, content: string): Promise<DayNote> { const item = { date, content, updatedAt: now() }; await database.notes.put(item); return item; }
 }
 export class LocalPreferencesRepository implements PreferencesRepository {
-  async get(): Promise<Preferences> { return (await database.preferences.get('app'))?.value ?? { calendar: 'persian', sampleDataInitialized: false }; }
+  async get(): Promise<Preferences> { return (await database.preferences.get('app'))?.value ?? { calendar: 'persian' }; }
   async save(value: Preferences) { const current = await this.get(); await database.preferences.put({ id: 'app', value: { ...current, ...value } }); }
 }
 export class LocalGoalRepository {
