@@ -1,0 +1,42 @@
+.install-app { min-width: 0; color: var(--theme-text); }
+.install-app--recommendation { margin-block: 20px 0; padding: 14px 16px; border: 1px solid var(--theme-border); border-radius: var(--radius-md, 14px); background: var(--theme-surface); }
+.install-app-row { display: grid; grid-template-columns: 36px minmax(0, 1fr) auto; align-items: center; gap: 12px; }
+.install-app--recommendation .install-app-row { grid-template-columns: 36px minmax(0, 1fr) auto 36px; }
+.install-app-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: var(--radius-sm, 10px); background: var(--theme-accent-wash); color: var(--theme-accent); }
+.install-app-copy { min-width: 0; }
+.install-app-copy strong, .install-app-guide-heading strong { display: block; font-size: 13px; font-weight: 600; }
+.install-app-copy p { margin: 3px 0 0; font-size: 11px; line-height: 1.8; color: var(--theme-muted); }
+.install-app-actions { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; }
+.install-app-button, .install-app-help { min-height: 40px; padding: 8px 14px; border: 1px solid var(--theme-border); border-radius: var(--radius-sm, 10px); color: var(--theme-text); background: var(--theme-surface-raised); font-size: 12px; white-space: nowrap; }
+.install-app[data-install-mode="ready"] .install-app-button { border-color: var(--theme-accent); color: var(--theme-on-accent); background: var(--theme-accent); }
+.install-app-help { border-color: transparent; background: transparent; color: var(--theme-muted); }
+.install-app-hide, .install-app-dismiss { display: grid; place-items: center; width: 36px; height: 36px; border: 0; border-radius: var(--radius-sm, 10px); background: transparent; color: var(--theme-muted); }
+.install-app-hide:hover, .install-app-dismiss:hover, .install-app-help:hover { background: var(--theme-surface-raised); color: var(--theme-text); }
+.install-app-message { margin: 10px 0 0; font-size: 11px; line-height: 1.8; color: var(--theme-muted); }
+.install-app-guide { margin-top: 14px; padding: 12px 14px; border: 1px solid var(--theme-border); border-radius: var(--radius-sm, 10px); background: var(--theme-surface-raised); font-size: 12px; line-height: 1.9; overflow-wrap: anywhere; }
+.install-app-guide-heading { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.install-app-guide ol { margin: 8px 0; padding-inline-start: 20px; }
+.install-app-guide li + li { margin-top: 6px; }
+.install-app-guide p { margin: 8px 0 0; }
+.install-app-note { font-size: 11px; color: var(--theme-muted); }
+.theme-settings-dialog .install-app--settings { border-radius: 0; background: transparent; }
+.theme-settings-dialog .install-app-row.setting-row { display: grid; padding: 0; }
+@media (max-width: 760px) {
+  .install-app-row { grid-template-columns: 36px minmax(0, 1fr); gap: 10px; }
+  .install-app--recommendation .install-app-row { grid-template-columns: 36px minmax(0, 1fr) 36px; }
+  .install-app-actions { grid-column: 2; grid-row: 2; }
+  .install-app-hide { grid-column: 3; grid-row: 1; }
+}
+@media (max-width: 480px) {
+  .install-app--recommendation { padding: 12px; }
+  .install-app--recommendation .install-app-row { grid-template-columns: 32px minmax(0, 1fr) 36px; gap: 8px; }
+  .install-app--recommendation .install-app-icon { width: 32px; height: 32px; }
+  .install-app--recommendation .install-app-actions { grid-column: 1 / -1; }
+  .install-app-button, .install-app-help { min-height: 44px; padding-inline: 12px; }
+  .install-app-hide, .install-app-dismiss { height: 44px; }
+  .install-app-guide { padding: 10px 12px; }
+}
+@media (display-mode: standalone) {
+  body { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); }
+  .install-app { display: none; }
+}

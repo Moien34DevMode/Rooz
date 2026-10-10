@@ -3,6 +3,10 @@ import ReactDOM from 'react-dom/client';
 import './styles/tokens.css';
 import './styles/global.css';
 import './styles/themes.css';
+import { initializeInstall, registerOfflineApp } from './features/install/install';
+
+initializeInstall();
+registerOfflineApp();
 
 const loader = document.getElementById('startup-loader');
 const status = document.getElementById('startup-status');

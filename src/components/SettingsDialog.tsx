@@ -3,6 +3,7 @@ import { CalendarDays, Download, HardDrive, Palette, Plus, Trash2, Upload, X } f
 import { parsePlannerBackup, type PlannerBackup } from '../storage/plannerBackup';
 import type { CalendarSystem } from '../domain/models';
 import { CalendarSwitch } from './CalendarSwitch';
+import { InstallApp } from './InstallApp';
 import { SelectField } from './SelectField';
 import { ThemeColorField, type ThemeColorPreset } from './ThemeColorField';
 import '../styles/themeControls.css';
@@ -279,6 +280,7 @@ function SettingsContent({ calendar, onCalendarChange, onClose, theme, onThemeCh
             </aside>
           </div>}
         </section>
+        {!editing && <InstallApp placement="settings"/>}
         {!editing && <section className="theme-settings-section theme-storage-section"><div className="setting-row"><span className="setting-icon"><HardDrive size={17}/></span><div className="setting-copy"><strong>حافظه‌ی محلی</strong><small>اطلاعات فقط در همین مرورگر و دستگاه نگهداری می‌شود.</small></div></div><p className="theme-help">نسخه‌ی پشتیبان شامل همه‌ی هدف‌ها، کارها، روتین‌ها و وضعیت انجام، بازه‌ها، یادداشت‌های همه‌ی روزها، تنظیمات تقویم و تم‌های شخصی است. فقط تنظیمات ذخیره‌شده صادر می‌شوند؛ تغییرات ذخیره‌نشده‌ی تم را ابتدا ذخیره کنید. فایل رمزگذاری نمی‌شود؛ آن را در جای امن نگه دارید.</p><div className="theme-tools"><button type="button" className="button secondary" onClick={() => { void run(onExportData); }}><Download size={15}/>دریافت فایل پشتیبان</button><button type="button" className="button secondary" onClick={() => fileInput.current?.click()}><Upload size={15}/>بازیابی از فایل</button></div><input ref={fileInput} type="file" accept=".json,application/json" hidden aria-label="انتخاب فایل پشتیبان" onChange={event => { const file = event.currentTarget.files?.[0]; event.currentTarget.value = ''; if (file) void selectBackup(file); }}/><p className="theme-help">پاک‌کردن حافظه، همه‌ی هدف‌ها، کارها، بازه‌ها، یادداشت‌ها، تنظیمات و تم‌های شخصی را برای همیشه حذف می‌کند.</p><button type="button" className="button theme-danger" onClick={() => { setError(''); setConfirmClear(true); }}><Trash2 size={15}/>پاک‌کردن تمام حافظه</button></section>}
       </fieldset>
       </div>

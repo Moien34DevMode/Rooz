@@ -1,6 +1,6 @@
 * { box-sizing: border-box; }
-html { min-width: 320px; scroll-behavior: smooth; }
-body { margin: 0; min-width: 320px; background: var(--canvas); font-size: 14px; }
+html { min-width: 0; scroll-behavior: smooth; }
+body { margin: 0; min-width: 0; background: var(--canvas); font-size: 14px; }
 button, input, select, textarea, option, optgroup { font: inherit; }
 input, select, textarea { color: inherit; caret-color: var(--green); }
 input::placeholder, textarea::placeholder { color: #9aa69e; opacity: 1; }
